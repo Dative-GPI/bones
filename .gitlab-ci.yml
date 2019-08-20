@@ -1,0 +1,11 @@
+variables:
+  DIR_TESTS: UnitTest
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+  - cd $DIR_TESTS
+  - dotnet test
