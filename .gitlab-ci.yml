@@ -1,6 +1,6 @@
 variables:
   GIT_SSL_NO_VERIFY: "true"
-  
+
   DIR_TESTS: UnitTest
 
 stages:
@@ -11,3 +11,4 @@ test:
   script:
   - cd $DIR_TESTS
   - dotnet test
+  image: microsoft/dotnet:2.2-sdk
