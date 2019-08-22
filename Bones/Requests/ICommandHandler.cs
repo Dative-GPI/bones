@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Chronos.Domain.Requests;
 
-namespace Chronos.Domain.Requests
+namespace Bones.Requests
 {
     public interface ICommandHandler<in TRequest>
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Chronos.Domain.Requests
+namespace Bones.Requests
 {
     public interface ICustomError
     {

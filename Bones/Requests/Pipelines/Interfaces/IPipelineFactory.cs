@@ -1,6 +1,6 @@
 using Chronos.Domain.Interfaces;
 
-namespace Chronos.Domain.Pipelines.Interfaces
+namespace Bones.Requests.Pipelines.Interfaces
 {
     public interface IPipelineFactory
     {

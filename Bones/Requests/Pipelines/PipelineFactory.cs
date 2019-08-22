@@ -3,11 +3,10 @@ using System.Collections.Generic;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Chronos.Domain.Pipelines.Interfaces;
+using Bones.Requests.Pipelines.Interfaces;
 using Microsoft.Extensions.Logging;
-using Chronos.Domain.Interfaces;
 
-namespace Chronos.Domain.Pipelines
+namespace Bones.Requests.Pipelines
 {
     public class PipelineFactory : IPipelineFactory
     {

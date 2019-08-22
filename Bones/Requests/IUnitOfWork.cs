@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Chronos.Domain.Interfaces
+namespace Bones.Requests
 {
     public interface IUnitOfWork
     {

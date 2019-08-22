@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 
-using Chronos.Domain.Requests;
-using Chronos.Domain.Pipelines.Interfaces;
-using Chronos.Domain.Interfaces;
+using Bones.Requests.Pipelines.Interfaces;
+using System.Diagnostics;
 
-namespace Chronos.Domain.Pipelines
+namespace Bones.Requests.Pipelines
 {
     public class Pipeline<TRequest> : IPipeline<TRequest>
     {
@@ -32,17 +31,25 @@ namespace Chronos.Domain.Pipelines
 
         async Task<RequestResult> ICommandHandler<TRequest>.HandleAsync(TRequest request, CancellationToken cancellationToken, bool commit)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var result = await this.Execute(request, cancellationToken);
             if (commit && result.Succeed)
             {
                 await _uow.Commit();
             }
+            _logger.LogInformation("Pipeline {pipeline} Takes {sw}ms", $"CommandPipeline<{typeof(TRequest).FullName}>", sw.ElapsedMilliseconds);
+            sw.Reset();
             return result;
         }
 
         async Task<RequestResult> IQueryHandler<TRequest>.HandleAsync(TRequest request, CancellationToken cancellationToken)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var result = await this.Execute(request, cancellationToken);
+            _logger.LogInformation("Pipeline {pipeline} Takes {sw}ms", $"QueryPipeline<{typeof(TRequest).FullName}>", sw.ElapsedMilliseconds);
+            sw.Reset();
             return result;
         }
 
@@ -75,16 +82,21 @@ namespace Chronos.Domain.Pipelines
 
         private async Task<RequestResult> OrExecute(TRequest request, CancellationToken cancellationToken, IEnumerable<IMiddleware<TRequest>> middlewares)
         {
+            Stopwatch sw = new Stopwatch();
             RequestResult lastResult = RequestResult.Fail();
 
             foreach (var middleware in middlewares)
             {
+                
                 cancellationToken.ThrowIfCancellationRequested();
                 
+                sw.Start();
                 lastResult = await middleware.HandleAsync(
                     request, () => Task.FromResult(RequestResult.Success()),
                     cancellationToken
                 );
+                _logger.LogInformation("Middleware {middleware} Takes {sw}ms", middleware, sw.ElapsedMilliseconds);
+                sw.Reset();
 
                 if (lastResult.Succeed)
                 {
@@ -102,14 +114,24 @@ namespace Chronos.Domain.Pipelines
             var middleware = middlewares.FirstOrDefault();
             if (middleware != default)
             {
+                Stopwatch sw = new Stopwatch();
                 Func<Task<RequestResult>> next = null;
 
                 if (middlewares.Skip(1).Any())
                 {
-                    next = () => this.AndExecute(request, cancellationToken, middlewares.Skip(1));
+                    next = async () => {
+                        sw.Stop();
+                        var _result = await this.AndExecute(request, cancellationToken, middlewares.Skip(1));
+                        sw.Start();
+                        return _result;
+                    };
                 }
 
-                return await middleware.HandleAsync(request, next, cancellationToken);
+                sw.Start();
+                var result = await middleware.HandleAsync(request, next, cancellationToken);
+                sw.Stop();
+                _logger.LogInformation("Middleware {middleware} Takes {sw}ms", middleware, sw.ElapsedMilliseconds);
+                return result;
             }
             else
             {
