@@ -2,16 +2,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Chronos.Domain.Interfaces;
-using Chronos.Domain.Pipelines;
-using Chronos.Domain.Pipelines.Interfaces;
-using Chronos.Domain.Requests;
+using Bones.Requests;
+using Bones.Requests.Pipelines;
+using Bones.Requests.Pipelines.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace UnitTest
 {
+   
     public class TestPipeline
     {
         private ServiceProvider _sp;
@@ -72,6 +72,8 @@ namespace UnitTest
 
         public TestPipeline()
         {
+            
+
             IConfigurationBuilder configBuilder = new ConfigurationBuilder();
             IConfiguration config = configBuilder.Build();
 
@@ -79,6 +81,7 @@ namespace UnitTest
 
             services.AddScoped<IPipelineFactory, PipelineFactory>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddLogging();
 
             services.AddScoped<Middleware1>();
             services.AddScoped<Middleware2>();
@@ -91,7 +94,7 @@ namespace UnitTest
                     .Add<Middleware1>()
                     .Add<Middleware2>()
                     .Finally<Middleware3>();
-                
+
                 return pipeline;
             });
 
@@ -102,7 +105,7 @@ namespace UnitTest
                     .Add<Middleware1>()
                     .Add<Middleware2>()
                     .Finally<Middleware3>();
-                
+
                 return pipeline;
             });
 
@@ -113,11 +116,12 @@ namespace UnitTest
                     .Add<Middleware1>()
                     .Add<Middleware2>()
                     .Finally<Middleware3>();
-                
+
                 return pipeline;
             });
 
             _sp = services.BuildServiceProvider();
+
         }
 
         [Theory]
@@ -132,7 +136,7 @@ namespace UnitTest
             var result = await handler.HandleAsync(c, CancellationToken.None);
 
             if (18 < age && age < 100)
-            { 
+            {
                 Assert.True(result.Succeed);
                 Assert.True((_sp.GetService<IUnitOfWork>() as UnitOfWork).Commited);
             }
