@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Bones.Exceptions;
 
 namespace Bones.Requests
 {
@@ -37,6 +38,11 @@ namespace Bones.Requests
                         throw new AggregateException(exceptions);
                 }
             }
+
+            if (Result == null)
+            {
+                throw new NullResultException();
+            }
         }
 
         public TResult EnsureSuccess<TResult>()
@@ -49,7 +55,7 @@ namespace Bones.Requests
             }
             return (TResult)Result;
         }
-        
+
         public static RequestResult Fail(IEnumerable<ICustomError> errors = default,
             [CallerMemberName] string memberName = "",
             [CallerFilePath]string filePath = "",
