@@ -49,7 +49,7 @@ namespace Bones.Requests
             }
             return (TResult)Result;
         }
-
+        
         public static RequestResult Fail(IEnumerable<ICustomError> errors = default,
             [CallerMemberName] string memberName = "",
             [CallerFilePath]string filePath = "",
