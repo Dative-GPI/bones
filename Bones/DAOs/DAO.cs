@@ -1,16 +1,16 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 
 namespace Bones.Repository
 {
-    public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
+    public class DAO<TEntity> : IDAO<TEntity> where TEntity : class
     {
         protected readonly DbContext db;
         protected readonly DbSet<TEntity> dbSet;
         
-        public Repository(DbContext context)
+        public DAO(DbContext context)
         {
             db = context;
             dbSet = db.Set<TEntity>();

@@ -61,7 +61,7 @@ namespace Bones.Requests
             [CallerFilePath]string filePath = "",
             [CallerLineNumber]int lineNumber = 0)
         {
-            if (errors == default) errors = Enumerable.Empty<ICustomError>();
+            if (errors == null) errors = Enumerable.Empty<ICustomError>();
 
             return new RequestResult()
             {
@@ -97,7 +97,7 @@ namespace Bones.Requests
 
     public class Caller
     {
-        internal Caller()
+        public Caller()
         {
 
         }

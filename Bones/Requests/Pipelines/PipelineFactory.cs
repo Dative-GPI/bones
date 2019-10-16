@@ -38,7 +38,7 @@ namespace Bones.Requests.Pipelines
         public IPipelineFactory<TRequest> Add<TMiddleware>() where TMiddleware : IMiddleware<TRequest>
         {
             var middleware = _provider.GetService<TMiddleware>();
-            if (middleware == default)
+            if (middleware == null)
             {
                 throw new NullReferenceException($"Service {typeof(TMiddleware)} has not been added to DI");
             }

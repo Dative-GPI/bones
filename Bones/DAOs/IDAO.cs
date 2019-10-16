@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Bones.Repository
 {
-    public interface IRepository<TEntity> where TEntity : class
+    public interface IDAO<TEntity> where TEntity : class
     {
         void Add(TEntity obj);
         void AddRange(IEnumerable<TEntity> objs);

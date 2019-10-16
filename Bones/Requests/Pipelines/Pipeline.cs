@@ -112,7 +112,7 @@ namespace Bones.Requests.Pipelines
             cancellationToken.ThrowIfCancellationRequested();
 
             var middleware = middlewares.FirstOrDefault();
-            if (middleware != default)
+            if (middleware != null)
             {
                 Stopwatch sw = new Stopwatch();
                 Func<Task<RequestResult>> next = null;
