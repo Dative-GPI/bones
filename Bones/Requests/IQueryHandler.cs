@@ -6,6 +6,6 @@ namespace Bones.Requests
 {
     public interface IQueryHandler<in TRequest>
     {
-        Task<RequestResult> HandleAsync(TRequest request, CancellationToken cancellationToken);
+        Task<RequestResult> HandleAsync(TRequest request, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

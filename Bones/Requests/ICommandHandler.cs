@@ -5,6 +5,6 @@ namespace Bones.Requests
 {
     public interface ICommandHandler<in TRequest>
     {
-        Task<RequestResult> HandleAsync(TRequest request, CancellationToken cancellationToken, bool commit = true);
+        Task<RequestResult> HandleAsync(TRequest request, CancellationToken cancellationToken = default(CancellationToken), bool commit = true);
     }
 }
