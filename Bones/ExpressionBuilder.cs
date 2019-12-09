@@ -19,7 +19,7 @@ namespace Bones
                 ConstantExpression ce = Expression.Constant(item);
                 BinaryExpression be = Expression.Equal(replaced, ce);
 
-                exp = exp == null ? be : Expression.Or(exp, be);
+                exp = exp == null ? be : Expression.OrElse(exp, be);
             }
 
             var result = Expression.Lambda<Func<TSource, bool>>(exp, new[] { pe });
@@ -38,7 +38,7 @@ namespace Bones
                 ConstantExpression ce = Expression.Constant(item);
                 Expression inserted = new SwapVisitor(comparison.Parameters[1], ce).Visit(replaced);
 
-                exp = exp == null ? inserted : Expression.Or(exp, inserted);
+                exp = exp == null ? inserted : Expression.OrElse(exp, inserted);
             }
 
             var result = Expression.Lambda<Func<TSource, bool>>(exp, new[] { pe });
