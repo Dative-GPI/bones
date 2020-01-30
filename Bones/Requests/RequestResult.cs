@@ -38,16 +38,16 @@ namespace Bones.Requests
                         throw new AggregateException(exceptions);
                 }
             }
-
-            if (Result == null)
-            {
-                throw new NullResultException();
-            }
         }
 
         public TResult EnsureSuccess<TResult>()
         {
             this.EnsureSuccess();
+
+            if (Result == null)
+            {
+                throw new NullResultException();
+            }
 
             if (!(Result is TResult))
             {
