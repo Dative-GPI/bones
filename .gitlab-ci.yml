@@ -9,4 +9,4 @@ test:
   script:
   - cd tests
   - for d in *.Tests/ ; do dotnet test $d; done
-  image: microsoft/dotnet:2.2-sdk
+  image: mcr.microsoft.com/dotnet/core/sdk:3.1
