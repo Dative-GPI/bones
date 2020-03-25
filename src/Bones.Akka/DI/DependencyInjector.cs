@@ -64,7 +64,7 @@ namespace Bones.Akka.DI
         }
 
         public static IServiceCollection AddCreator<TInterface, TActor>(this IServiceCollection services)
-            where TActor : ActorBase
+            where TActor : ActorBase, TInterface
         {
             services.AddScoped<TActor>();
 
