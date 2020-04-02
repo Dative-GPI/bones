@@ -12,7 +12,7 @@ namespace Bones.Tests
         }
     }
     
-    public class XunitLogger : IDisposable
+    public class XunitLogger : ILogger, IDisposable
     {
         private ITestOutputHelper _output;
 
