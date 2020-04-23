@@ -38,6 +38,8 @@ namespace Bones.Akka.DI
         public static IServiceCollection AddActorReference<TActor>(this IServiceCollection services)
             where TActor : ActorBase
         {
+            services.AddScoped<TActor>();
+
             services.AddSingleton<IActorRefProvider<TActor>>(sp =>
             {
                 var actorSystem = sp.GetService<ActorSystem>();
@@ -57,8 +59,6 @@ namespace Bones.Akka.DI
             {
                 return (context) => context.DI().Props<TActor>();
             });
-
-
 
             return services;
         }
