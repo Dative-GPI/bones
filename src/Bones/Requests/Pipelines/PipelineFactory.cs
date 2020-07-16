@@ -66,8 +66,8 @@ namespace Bones.Requests.Pipelines
 
         public IPipeline<TRequest> Build()
         {
-            var logger = _provider.GetService<ILogger<Pipeline<TRequest>>>();
-            var uow = _provider.GetService<IUnitOfWork>();
+            var logger = _provider.GetRequiredService<ILogger<Pipeline<TRequest>>>();
+            var uow = _provider.GetRequiredService<IUnitOfWork>();
             return new Pipeline<TRequest>(logger, uow, _middlewares, _mode);
         }
     }
