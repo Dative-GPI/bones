@@ -34,7 +34,7 @@ namespace Bones.Requests.Pipelines
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var result = await this.Execute(request, cancellationToken);
-            if (commit && result.Succeed)
+            if (commit && result.Succeed && _uow != null)
             {
                 await _uow.Commit();
             }

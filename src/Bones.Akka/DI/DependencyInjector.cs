@@ -35,13 +35,15 @@ namespace Bones.Akka.DI
             return services;
         }
 
-        public static IServiceCollection AddActorReference<TActor>(this IServiceCollection services)
+        public static IServiceCollection AddActorReference<TActor>(this IServiceCollection services, string name = null)
             where TActor : ActorBase
         {
+            services.AddScoped<TActor>();
+
             services.AddSingleton<IActorRefProvider<TActor>>(sp =>
             {
                 var actorSystem = sp.GetService<ActorSystem>();
-                var actor = actorSystem.ActorOf(actorSystem.DI().Props<TActor>());
+                var actor = actorSystem.ActorOf(actorSystem.DI().Props<TActor>(), name ?? typeof(TActor).Name.ToLower());
                 return new ActorRefProvider<TActor>(actor);
             });
 
@@ -57,8 +59,6 @@ namespace Bones.Akka.DI
             {
                 return (context) => context.DI().Props<TActor>();
             });
-
-
 
             return services;
         }

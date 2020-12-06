@@ -2,12 +2,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Bones.Requests;
-using Bones.Requests.Pipelines;
-using Bones.Requests.Pipelines.Interfaces;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+
+using Bones.Requests;
+using Bones.Requests.Pipelines;
+using Bones.Requests.Pipelines.Interfaces;
 
 namespace UnitTest
 {
