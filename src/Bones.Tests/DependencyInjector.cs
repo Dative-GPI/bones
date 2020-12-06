@@ -9,7 +9,8 @@ namespace Bones.Tests.DI
         public static IServiceCollection AddDebug(this IServiceCollection services, ITestOutputHelper output)
         {
             services.AddSingleton<ITestOutputHelper>(output);
-            services.AddSingleton(typeof(ILogger<>), typeof(XunitLogger<>));
+            
+            services.AddScoped(typeof(ILogger<>), typeof(XunitLogger<>));
 
             return services;
         }
