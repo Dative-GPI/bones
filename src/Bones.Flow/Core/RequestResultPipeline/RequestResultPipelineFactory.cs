@@ -33,6 +33,7 @@ namespace Bones.Flow.Core
         public IPipeline<TRequest, TResult> Build()
         {
             var pipeline = _provider.GetRequiredService<IPipeline<TRequest, TResult>>();
+            var uow = _provider.GetService<IUnitOfWork>();
 
             pipeline.Configure(
                 _middlewareTypes,
@@ -40,7 +41,8 @@ namespace Bones.Flow.Core
                 _requestResultMiddlewares,
                 _requestSuccessHandler,
                 _requestResultSuccessHandler,
-                _failureHandlers
+                _failureHandlers,
+                uow
             );
             
             return pipeline;

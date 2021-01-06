@@ -91,64 +91,64 @@ namespace UnitTest
         [Fact]
         public void In_IsIdentityWithSameInput_1()
         {
-            var result = l0.Where(ExpressionBuilder.In<int, int>(l0, e => e).Compile());
+            var result = l0.Where(ExpressionExtensions.In<int, int>(l0, e => e).Compile());
             Assert.Equal(l0, result);
         }
 
         [Fact]
         public void In_FindCommonElements_1()
         {
-            var result = l1.Where(ExpressionBuilder.In<int, int>(l2, e => e).Compile());
+            var result = l1.Where(ExpressionExtensions.In<int, int>(l2, e => e).Compile());
             Assert.Equal(common1, result);
         }
 
         [Fact]
         public void In_FindCommonElements_2()
         {
-            var result = l2.Where(ExpressionBuilder.In<int, int>(l1, e => e).Compile());
+            var result = l2.Where(ExpressionExtensions.In<int, int>(l1, e => e).Compile());
             Assert.Equal(common1, result);
         }
 
         [Fact]
         public void In_IsIdentityWithSameInput_2()
         {
-            var result = l3.Where(ExpressionBuilder.In<Obj, int>(l0, e => e.Val).Compile());
+            var result = l3.Where(ExpressionExtensions.In<Obj, int>(l0, e => e.Val).Compile());
             Assert.Equal(l3, result);
         }
 
         [Fact]
         public void In_FindCommonElements_3()
         {
-            var result = l3.Where(ExpressionBuilder.In<Obj, int>(l1, e => e.Val).Compile());
+            var result = l3.Where(ExpressionExtensions.In<Obj, int>(l1, e => e.Val).Compile());
             Assert.Equal(l3.Where(o => o.Prop), result);
         }
 
         [Fact]
         public void In_FindCommonElements_4()
         {
-            var result = l4.Where(ExpressionBuilder.In<Obj, int>(l2, e => e.Val).Compile());
+            var result = l4.Where(ExpressionExtensions.In<Obj, int>(l2, e => e.Val).Compile());
             Assert.Equal(l4.Where(o => o.Prop), result);
         }
 
         [Fact]
         public void Or_BehaveLikeInWithEquality()
         {
-            var result = l3.Where(ExpressionBuilder.Or<Obj, int>(l1, (e, i) => e.Val == i).Compile());
-            var expected = l3.Where(ExpressionBuilder.In<Obj, int>(l1, e => e.Val).Compile());
+            var result = l3.Where(ExpressionExtensions.Or<Obj, int>(l1, (e, i) => e.Val == i).Compile());
+            var expected = l3.Where(ExpressionExtensions.In<Obj, int>(l1, e => e.Val).Compile());
             Assert.Equal(expected, result);
         }
 
         [Fact]
         public void Or_FilterAccordingToPredicate_1()
         {
-            var result = l3.Where(ExpressionBuilder.Or<Obj, Obj>(l4, (e1, e2) => e1.Val == e2.Val).Compile());
+            var result = l3.Where(ExpressionExtensions.Or<Obj, Obj>(l4, (e1, e2) => e1.Val == e2.Val).Compile());
             Assert.Equal(l3, result);
         }
 
         [Fact]
         public void Or_FilterAccordingToPredicate_2()
         {
-            var result = l4.Where(ExpressionBuilder.Or<Obj, Obj>(l3, (e1, e2) => e1.Val == e2.Val && e1.Prop == e2.Prop).Compile());
+            var result = l4.Where(ExpressionExtensions.Or<Obj, Obj>(l3, (e1, e2) => e1.Val == e2.Val && e1.Prop == e2.Prop).Compile());
             Assert.Equal(common2, result);
         }
     }

@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace Bones
 {
-    public static class ExpressionBuilder
+    public static class ExpressionExtensions
     {
 
         public static Expression<Func<TSource, bool>> In<TSource, TElement>(IEnumerable<TElement> items, Expression<Func<TSource, TElement>> comparatorAccessor)
