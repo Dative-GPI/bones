@@ -50,6 +50,22 @@ namespace Bones.Akka.DI
             return services;
         }
 
+
+        public static IServiceCollection AddActorReference<TInterface, TActor>(this IServiceCollection services, string name = null)
+            where TActor : ActorBase, TInterface 
+        {
+            services.AddScoped<TActor>();
+
+            services.AddSingleton<IActorRefProvider<TInterface>>(sp =>
+            {
+                var actorSystem = sp.GetService<ActorSystem>();
+                var actor = actorSystem.ActorOf(actorSystem.DI().Props<TActor>(), name ?? typeof(TActor).Name.ToLower());
+                return new ActorRefProvider<TInterface>(actor);
+            });
+
+            return services;
+        }
+
         public static IServiceCollection AddCreator<TActor>(this IServiceCollection services)
             where TActor : ActorBase
         {
