@@ -5,14 +5,14 @@ namespace Bones.Converters
     /// </summary>
     public enum Endianness
     {
-        /// <summary>
-        /// Little endian - least significant byte first
-        /// </summary>
-        LittleEndian,
 
         /// <summary>
         /// Big endian - most significant byte first
         /// </summary>
-        BigEndian
+        BigEndian = 0,
+        /// <summary>
+        /// Little endian - least significant byte first
+        /// </summary>
+        LittleEndian = 1
     }
 }
