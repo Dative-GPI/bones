@@ -4,18 +4,18 @@ namespace Bones.Akka
 {
     public class ActorRefProvider<T> : ActorRefProvider, IActorRefProvider<T>
     {
-        public ActorRefProvider(IActorRef actorRef)
-            : base(actorRef)
+        public ActorRefProvider(ActorSelection actorRefs)
+            : base(actorRefs)
         {
         }
     }
 
     public abstract class ActorRefProvider : IActorRefProvider
     {
-        public IActorRef ActorRef { get; }
-        protected ActorRefProvider(IActorRef actorRef)
+        public ActorSelection ActorRefs { get; }
+        protected ActorRefProvider(ActorSelection actorRefs)
         {
-            ActorRef = actorRef;
+            ActorRefs = actorRefs;
         }
     }
 }

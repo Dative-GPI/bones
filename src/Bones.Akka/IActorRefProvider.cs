@@ -4,7 +4,7 @@ namespace Bones.Akka
 {
     public interface IActorRefProvider
     {
-        IActorRef ActorRef { get; }
+        ActorSelection ActorRefs { get; }
     }
 
     public interface IActorRefProvider<T> : IActorRefProvider

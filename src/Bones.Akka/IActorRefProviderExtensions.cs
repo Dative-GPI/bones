@@ -9,47 +9,47 @@ namespace Bones.Akka
     {
         public static void Tell(this IActorRefProvider provider, object message, IActorRef sender)
         {
-            provider.ActorRef.Tell(message, sender);
+            provider.ActorRefs.Tell(message, sender);
         }
 
         public static void Tell(this IActorRefProvider provider, object message)
         {
-            provider.ActorRef.Tell(message, ActorRefs.NoSender);
+            provider.ActorRefs.Tell(message, ActorRefs.NoSender);
         }
 
         public static Task<object> Ask(this IActorRefProvider provider, object message, TimeSpan? timeout = null)
         {
-            return provider.ActorRef.Ask(message, timeout);
+            return provider.ActorRefs.Ask(message, timeout);
         }
 
         public static Task<object> Ask(this IActorRefProvider provider, object message, CancellationToken cancellationToken)
         {
-            return provider.ActorRef.Ask(message, cancellationToken);
+            return provider.ActorRefs.Ask(message, cancellationToken);
         }
 
         public static Task<object> Ask(this IActorRefProvider provider, object message, TimeSpan? timeout, CancellationToken cancellationToken)
         {
-            return provider.ActorRef.Ask(message, timeout, cancellationToken);
+            return provider.ActorRefs.Ask(message, timeout, cancellationToken);
         }
 
         public static Task<T> Ask<T>(this IActorRefProvider provider, object message, TimeSpan? timeout = null)
         {
-            return provider.ActorRef.Ask<T>(message, timeout);
+            return provider.ActorRefs.Ask<T>(message, timeout);
         }
 
         public static Task<T> Ask<T>(this IActorRefProvider provider, object message, CancellationToken cancellationToken)
         {
-            return provider.ActorRef.Ask<T>(message, cancellationToken);
+            return provider.ActorRefs.Ask<T>(message, cancellationToken);
         }
 
         public static Task<T> Ask<T>(this IActorRefProvider provider, object message, TimeSpan? timeout, CancellationToken cancellationToken)
         {
-            return provider.ActorRef.Ask<T>(message, timeout, cancellationToken);
+            return provider.ActorRefs.Ask<T>(message, timeout, cancellationToken);
         }
 
         public static Task<T> Ask<T>(this IActorRefProvider provider, Func<IActorRef, object> messageFactory, TimeSpan? timeout, CancellationToken cancellationToken)
         {
-            return provider.ActorRef.Ask<T>(messageFactory, timeout, cancellationToken);
+            return provider.ActorRefs.Ask<T>(messageFactory, timeout, cancellationToken);
         }
     }
 }
