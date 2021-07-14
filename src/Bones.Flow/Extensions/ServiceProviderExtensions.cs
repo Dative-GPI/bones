@@ -14,12 +14,5 @@ namespace Bones.Flow
         {
             return provider.GetRequiredService<IPipelineFactory<TRequest, TResult>>();
         }
-
-        // public static IPipeline<TRequest> CreateSimpleHandler<TRequest, THandler>(this IServiceProvider provider)
-        //     where THandler : IMiddleware<TRequest>
-        // {
-        //     return provider.GetRequiredService<IPipeline<TRequest>>()
-        //         .Add<THandler>();
-        // }
     }
 }
