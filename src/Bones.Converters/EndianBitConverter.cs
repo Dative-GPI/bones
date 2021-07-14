@@ -164,6 +164,24 @@ namespace Bones.Converters
             return Int32BitsToSingle(ToInt32(value, startIndex));
         }
 
+
+        public virtual long ToInt(byte[] value, int startIndex)
+        {
+            switch (value.Length)
+            {
+                case 0:
+                    return 0;
+                case 2:
+                    return ToInt16(value, 0);
+                case 4:
+                    return ToInt32(value, 0);
+                case 8:
+                    return ToInt64(value, 0);
+                default:
+                    throw new NotImplementedException($"Data can't be converted to int - b64: {Convert.ToBase64String(value)} \tLength: {value.Length}");
+            }
+        }
+
         /// <summary>
         /// Returns a 16-bit signed integer converted from two bytes at a specified position in a byte array.
         /// </summary>
@@ -188,6 +206,34 @@ namespace Bones.Converters
         /// <returns>A 64-bit signed integer formed by eight bytes beginning at startIndex.</returns>
         public abstract long ToInt64(byte[] value, int startIndex);
 
+
+        public virtual ulong ToUInt(byte[] value, int startIndex)
+        {
+            switch (value.Length)
+            {
+                case 0:
+                    return 0;
+                case 1:
+                    return (UInt16)(ToUInt16(value, 0) >> 8);
+                case 2:
+                    return ToUInt16(value, 0);
+                case 3:
+                    return ToUInt32(value, 0) >> 8;
+                case 4:
+                    return ToUInt32(value, 0);
+
+                case 5:
+                    return ToUInt64(value, 0) >> 24;
+                case 6:
+                    return ToUInt64(value, 0) >> 16;
+                case 7:
+                    return ToUInt64(value, 0) >> 8;
+                case 8:
+                    return ToUInt64(value, 0);
+                default:
+                    throw new NotImplementedException($"Data can't be convert to uint - b64: {Convert.ToBase64String(value)}");
+            }
+        }
         /// <summary>
         /// Returns a 16-bit unsigned integer converted from two bytes at a specified position in a byte array.
         /// </summary>
@@ -211,7 +257,7 @@ namespace Bones.Converters
         /// <param name="startIndex">The starting position within value.</param>
         /// <returns>A 64-bit unsigned integer formed by eight bytes beginning at startIndex.</returns>
         public abstract ulong ToUInt64(byte[] value, int startIndex);
-        
+
         #endregion
 
 
@@ -435,7 +481,7 @@ namespace Bones.Converters
         /// <returns>An array of bytes with length 8.</returns>
         public byte[] GetBytes(ulong value)
         {
-            return GetBytes(unchecked((long) value), 8);
+            return GetBytes(unchecked((long)value), 8);
         }
 
         #endregion
@@ -487,7 +533,7 @@ namespace Bones.Converters
         /// <param name="index">The first index into the array to copy the bytes into</param>
         public void CopyBytes(bool value, byte[] buffer, int index)
         {
-            buffer[index] = (byte) (value ? 1 : 0);
+            buffer[index] = (byte)(value ? 1 : 0);
         }
 
         /// <summary>
