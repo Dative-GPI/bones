@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Akka.Actor;
-using Akka.Configuration;
-using Akka.DI.Core;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+using Akka.Actor;
+using Akka.Configuration;
+using Akka.DependencyInjection;
 
 namespace Bones.Akka.DI
 {
@@ -14,22 +16,24 @@ namespace Bones.Akka.DI
         {
             services.AddSingleton<ActorSystem>(sp =>
             {
-                var actorSystem = ActorSystem.Create(systemName,
-                    ConfigurationFactory.FromObject(
-                        sp.GetService<IConfiguration>()
-                            .GetSection("Akka")));
+                var configuration = ConfigurationFactory.FromObject(
+                    sp.GetService<IConfiguration>()
+                        .GetSection("Akka"));
 
-                actorSystem.AddDependencyResolver(
-                    new MicrosoftDependencyResolver(
-                        sp.GetService<IServiceScopeFactory>(),
-                        actorSystem));
+                var di = DependencyResolverSetup.Create(sp);
+
+                var setup = BootstrapSetup.Create()
+                    .WithConfig(configuration)
+                    .And(di);
+
+                var actorSystem = ActorSystem.Create(systemName, setup);
 
                 return actorSystem;
             });
 
             services.AddScoped<Creator>(sp =>
             {
-                return (type, context) => context.DI().Props(type);
+                return (type, context) =>  DependencyResolver.For(context.System).Props(type);
             });
 
             return services;
@@ -42,7 +46,7 @@ namespace Bones.Akka.DI
 
             services.AddScoped<Creator<TActor>>(sp =>
             {
-                return (context) => context.DI().Props<TActor>();
+                return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
 
             return services;
@@ -56,7 +60,7 @@ namespace Bones.Akka.DI
 
             services.AddSingleton<RootCreator<TActor>>(sp =>
             {
-                return (context) => context.DI().Props<TActor>();
+                return (context) => DependencyResolver.For(context).Props<TActor>();
             });
 
             return services;
@@ -69,7 +73,7 @@ namespace Bones.Akka.DI
 
             services.AddScoped<Creator<TInterface>>(sp =>
             {
-                return (context) => context.DI().Props<TActor>();
+                return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
 
             return services;
