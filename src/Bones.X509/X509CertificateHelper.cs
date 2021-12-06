@@ -136,7 +136,8 @@ namespace Bones.X509
         public static bool CanCertSign(this X509Certificate2 cert) => cert.Extensions.Cast<object>()
             .Any(e => e is X509KeyUsageExtension usage && (usage.KeyUsages & X509KeyUsageFlags.KeyCertSign) == X509KeyUsageFlags.KeyCertSign);
 
-            
+        public static string GetCommonName(this X509Certificate2 cert) => cert.GetNameInfo(X509NameType.SimpleName, false);
+
         public static byte[] GenerateSerialNumber()
         {
             ulong random = ((ulong)RandomNumberGenerator.GetInt32(Int32.MaxValue) << 32) | (uint)RandomNumberGenerator.GetInt32(Int32.MaxValue);
