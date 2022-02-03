@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Version>$(VERSION)</Version>
+    <Authors>dative-gpi</Authors>
+    <Company>dative-gpi</Company>
   </PropertyGroup>
 
   <ItemGroup>
