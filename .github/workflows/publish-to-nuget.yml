@@ -26,4 +26,4 @@ jobs:
       - name: Publishing to NuGet 🚀
         run: |
           cd src/${{ matrix.folder}}/bin/Debug
-          dotnet nuget push ${{matrix.node}}${{ github.ref_name}}.nupkg -k ${{ secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
+          dotnet nuget push ${{matrix.folder}}${{ github.ref_name}}.nupkg -k ${{ secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
