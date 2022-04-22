@@ -72,11 +72,13 @@ namespace Bones.Flow.Core
         {
             Contract.Assert(_configured, "Pipeline not configured");
 
-            var result = await ExecutePipeline(request, cancellationToken);
+            var result = await ExecutePipeline(request, cancellationToken,
+                beforeSuccess: commit ? Commit : (Func<Task>)null
+            );
 
-            if (_unitOfWork != null && commit)
+            if (commit)
             {
-                await _unitOfWork.Commit();
+                await Commit();
             }
 
             return result;
@@ -101,7 +103,19 @@ namespace Bones.Flow.Core
         }
 
 
-        public async Task<TResult> ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task<TResult>> next = default)
+        private async Task Commit()
+        {
+            if (_unitOfWork != null)
+            {
+                using (var trace = _traceFactory.CreateCommitTrace(_pipelineTrace))
+                {
+                    await _unitOfWork.Commit();
+                }
+            }
+        }
+
+
+        private async Task<TResult> ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task<TResult>> next = default, Func<Task> beforeSuccess = null)
         {
             TResult result = default(TResult);
 
@@ -117,6 +131,11 @@ namespace Bones.Flow.Core
                     await ExecuteFailureHandlers(request, ex, cancellationToken);
 
                     throw;
+                }
+
+                if (beforeSuccess != null)
+                {
+                    await beforeSuccess();
                 }
 
                 await ExecuteSuccessHandlers(request, result, cancellationToken);
@@ -150,7 +169,7 @@ namespace Bones.Flow.Core
             }
 
             TResult result = default(TResult);
-            
+
             var middlewareType = _middlewareTypes[counter.Index];
             counter.Index++;
 

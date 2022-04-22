@@ -1,3 +1,7 @@
+using System;
+
+using Bones;
+
 namespace Bones.Flow
 {
     public static class TraceExtensions
@@ -9,6 +13,7 @@ namespace Bones.Flow
         const string MIDDLEWARE = "middleware";
         const string FAILUREHANDLER = "failurehandler";
         const string SUCCESSHANDLER = "successhandler";
+        const string COMMIT = "commit";
 
 
         public static ITrace CreatePipelineTrace<TRequest>(this ITraceFactory factory) 
@@ -18,7 +23,7 @@ namespace Bones.Flow
 
             if (trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, PIPELINE);
             }
 
@@ -32,8 +37,8 @@ namespace Bones.Flow
 
             if (trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
-                trace.SetTag(PIPELINE_RESULT, typeof(TResult).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
+                trace.SetTag(PIPELINE_RESULT, typeof(TResult).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, PIPELINE);
             }
 
@@ -43,11 +48,11 @@ namespace Bones.Flow
         public static ITrace CreateMiddlewareTrace<TRequest>(this ITraceFactory factory, IMiddleware<TRequest> middleware, ITrace pipelineTrace)
             where TRequest: IRequest
         {
-            var trace = factory.Create(middleware.GetType().Name, pipelineTrace);
+            var trace = factory.Create(middleware.GetType().ToColloquialString(), pipelineTrace);
 
             if(trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, MIDDLEWARE);
             }
 
@@ -57,25 +62,32 @@ namespace Bones.Flow
         public static ITrace CreateMiddlewareTrace<TRequest, TResult>(this ITraceFactory factory, IMiddleware<TRequest, TResult> middleware, ITrace pipelineTrace)
             where TRequest: IRequest<TResult>
         {
-            var trace = factory.Create(middleware.GetType().Name, pipelineTrace);
+            var trace = factory.Create(middleware.GetType().ToColloquialString(), pipelineTrace);
 
             if(trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
-                trace.SetTag(PIPELINE_RESULT, typeof(TResult).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
+                trace.SetTag(PIPELINE_RESULT, typeof(TResult).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, MIDDLEWARE);
             }
 
             return trace;
         }
 
+        public static ITrace CreateCommitTrace(this ITraceFactory factory, ITrace pipelineTrace)
+        {
+            var trace = factory.Create(COMMIT, pipelineTrace);
+
+            return trace;
+        }
+
         public static ITrace CreateFailureHandlerTrace<TRequest>(this ITraceFactory factory, IFailureHandler<TRequest> failureHandler, ITrace pipelineTrace) where TRequest: IRequest
         {
-            var trace = factory.Create(failureHandler.GetType().Name, pipelineTrace);
+            var trace = factory.Create(failureHandler.GetType().ToColloquialString(), pipelineTrace);
 
             if(trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, FAILUREHANDLER);
             }
 
@@ -84,11 +96,11 @@ namespace Bones.Flow
 
         public static ITrace CreateSuccessHandlerTrace<TRequest>(this ITraceFactory factory, ISuccessHandler<TRequest> successHandler, ITrace pipelineTrace) where TRequest: IRequest
         {
-            var trace = factory.Create(successHandler.GetType().Name, pipelineTrace);
+            var trace = factory.Create(successHandler.GetType().ToColloquialString(), pipelineTrace);
 
             if(trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, SUCCESSHANDLER);
             }
 
@@ -98,12 +110,12 @@ namespace Bones.Flow
         public static ITrace CreateSuccessHandlerTrace<TRequest, TResult>(this ITraceFactory factory, ISuccessHandler<TRequest, TResult> successHandler, ITrace pipelineTrace) 
             where TRequest: IRequest<TResult>
         {
-            var trace = factory.Create(successHandler.GetType().Name, pipelineTrace);
+            var trace = factory.Create(successHandler.GetType().ToColloquialString(), pipelineTrace);
 
             if(trace.IsRecording)
             {
-                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).Name);
-                trace.SetTag(PIPELINE_RESULT, typeof(TResult).Name);
+                trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
+                trace.SetTag(PIPELINE_RESULT, typeof(TResult).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, SUCCESSHANDLER);
             }
 

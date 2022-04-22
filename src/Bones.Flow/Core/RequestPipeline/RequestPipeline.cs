@@ -54,11 +54,13 @@ namespace Bones.Flow.Core
         {
             Contract.Assert(_configured, "Pipeline not configured");
 
-            await ExecutePipeline(request, cancellationToken);
+            await ExecutePipeline(request, cancellationToken,
+                beforeSuccess: commit ? Commit : (Func<Task>)null
+            );
 
-            if (_unitOfWork != null && commit)
+            if (commit)
             {
-                await _unitOfWork.Commit();
+                await Commit();
             }
         }
 
@@ -69,7 +71,19 @@ namespace Bones.Flow.Core
             await ExecutePipeline(request, cancellationToken, next);
         }
 
-        public async Task ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task> next = default)
+
+        private async Task Commit()
+        {
+            if (_unitOfWork != null)
+            {
+                using (var trace = _traceFactory.CreateCommitTrace(_pipelineTrace))
+                {
+                    await _unitOfWork.Commit();
+                }
+            }
+        }
+
+        public async Task ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task> next = default, Func<Task> beforeSuccess = null)
         {
             using (_pipelineTrace = _traceFactory.CreatePipelineTrace<TRequest>())
             {
@@ -84,6 +98,12 @@ namespace Bones.Flow.Core
 
                     throw;
                 }
+
+                if (beforeSuccess != null)
+                {
+                    await beforeSuccess();
+                }
+
 
                 await ExecuteSuccessHandlers(request, cancellationToken);
             }
