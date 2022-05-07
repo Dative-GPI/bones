@@ -128,7 +128,20 @@ namespace Bones.X509
             return certCollection.Export(X509ContentType.Pkcs12, password);
         }
 
+        public static bool IsLeaf(this X509Certificate2 leaf, X509Certificate2 root, params X509Certificate2[] intermediates)
+        {
+            var chain = new X509Chain(false);
 
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
+            
+            chain.ChainPolicy.CustomTrustStore.Clear();
+            chain.ChainPolicy.CustomTrustStore.Add(root);
+            chain.ChainPolicy.CustomTrustStore.AddRange(intermediates);
+
+            return chain.Build(leaf);
+        }
 
         public static bool IsRoot(this X509Certificate2 cert) => cert.Extensions.Cast<object>()
             .Any(e => e is X509BasicConstraintsExtension constraint && constraint.CertificateAuthority);
