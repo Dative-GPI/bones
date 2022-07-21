@@ -16,13 +16,13 @@ jobs:
           dotnet-version: 5.0.x
       - name: Install dependencies
         run: |
-          cd src/${{matrix.folder}}
+          cd tests/${{matrix.folder}}
           dotnet restore
       - name: Build
         run: |
-          cd src/${{matrix.folder}}
+          cd tests/${{matrix.folder}}
           dotnet build --configuration Release --no-restore
       - name: Test
         run: |
-          cd src/${{matrix.folder}}
+          cd tests/${{matrix.folder}}
           dotnet test --no-restore --verbosity normal
