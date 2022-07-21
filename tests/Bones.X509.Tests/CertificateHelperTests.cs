@@ -26,6 +26,7 @@ namespace Bones.X509.Tests
             var leaf = intermediate.CreateLeaf("cm2", "ou", "o", "l", "s");
 
             Assert.True(leaf.IsLeaf(root, intermediate));
+            Assert.True(leaf.IsLeaf(intermediate));
         }
 
 

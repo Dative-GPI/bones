@@ -1,0 +1,28 @@
+name: Build & Tests
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folder: [Bones.Akka.Tests, Bones.Converters.Tests, Bones.Flow.Tests, Bones.Tests, Bones.X509.Tests]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK 5.0.x
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 5.0.x
+      - name: Install dependencies
+        run: |
+          cd src/${{matrix.folder}}
+          dotnet restore
+      - name: Build
+        run: |
+          cd src/${{matrix.folder}}
+          dotnet build --configuration Release --no-restore
+      - name: Test
+        run: |
+          cd src/${{matrix.folder}}
+          dotnet test --no-restore --verbosity normal
