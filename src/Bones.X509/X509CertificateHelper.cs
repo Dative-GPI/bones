@@ -156,7 +156,9 @@ namespace Bones.X509
 
             chain.Build(leaf);
 
-            return chain.ChainElements.Count > 0 && chain.ChainElements[0].Certificate == parent;
+            return chain.ChainElements.Count == 2 
+                && chain.ChainElements[0].Certificate.Thumbprint == leaf.Thumbprint
+                && chain.ChainElements[1].Certificate.Thumbprint == parent.Thumbprint;
         }
 
         public static bool IsRoot(this X509Certificate2 cert) => cert.Extensions.Cast<object>()
