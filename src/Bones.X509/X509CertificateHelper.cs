@@ -143,6 +143,22 @@ namespace Bones.X509
             return chain.Build(leaf);
         }
 
+        public static bool IsSignedBy(this X509Certificate2 leaf, X509Certificate2 parent)
+        {
+            var chain = new X509Chain(false);
+
+            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+            chain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
+            chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
+            
+            chain.ChainPolicy.CustomTrustStore.Clear();
+            chain.ChainPolicy.CustomTrustStore.Add(parent);
+
+            chain.Build(leaf);
+
+            return chain.ChainElements.Count > 0 && chain.ChainElements[0].Certificate == parent;
+        }
+
         public static bool IsRoot(this X509Certificate2 cert) => cert.Extensions.Cast<object>()
             .Any(e => e is X509BasicConstraintsExtension constraint && constraint.CertificateAuthority);
 
