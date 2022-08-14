@@ -9,18 +9,22 @@ namespace System.Linq
     {
         public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> source, string propertyName)
         {
-            if(!HasProperty<T>(propertyName)) 
+            var property = GetProperty<T>(propertyName);
+
+            if (property == null)
                 throw new ArgumentException($"Property {propertyName} does not exist on type {typeof(T)}");
-            
-            return source.OrderBy(ToLambda<T>(propertyName));
+
+            return source.OrderBy(ToLambda<T>(property.Name));
         }
 
         public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> source, string propertyName)
-        {            
-            if(!HasProperty<T>(propertyName)) 
+        {
+            var property = GetProperty<T>(propertyName);
+
+            if (property == null)
                 throw new ArgumentException($"Property {propertyName} does not exist on type {typeof(T)}");
 
-            return source.OrderByDescending(ToLambda<T>(propertyName));
+            return source.OrderByDescending(ToLambda<T>(property.Name));
         }
 
         private static Expression<Func<T, object>> ToLambda<T>(string propertyName)
@@ -31,11 +35,9 @@ namespace System.Linq
             return Expression.Lambda<Func<T, object>>(property, parameter);
         }
 
-        private static bool HasProperty<T>(string propertyName)
+        private static PropertyInfo GetProperty<T>(string propertyName)
         {
-            var propertyInfo = typeof(T).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-            
-            return propertyInfo != null;
+            return typeof(T).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
         }
     }
 }
