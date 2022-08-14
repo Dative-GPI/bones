@@ -30,6 +30,7 @@ namespace Bones.X509.Tests
             Assert.True(leaf.IsSignedBy(intermediate));
 
             Assert.False(leaf.IsLeaf(intermediate));
+            Assert.False(leaf.IsSignedBy(root));
         }
 
 
@@ -43,6 +44,7 @@ namespace Bones.X509.Tests
             var leaf = root2.CreateLeaf("cm2", "ou", "o", "l", "s");
 
             Assert.False(leaf.IsLeaf(root));
+            Assert.False(leaf.IsSignedBy(root));
         }
 
         [Fact]
@@ -55,6 +57,7 @@ namespace Bones.X509.Tests
             var leaf = intermediate1.CreateLeaf("cm2", "ou", "o", "l", "s");
 
             Assert.False(leaf.IsLeaf(root));
+            Assert.False(leaf.IsSignedBy(root));
         }
 
 
@@ -69,6 +72,8 @@ namespace Bones.X509.Tests
             var leaf = intermediate2.CreateLeaf("cm2", "ou", "o", "l", "s");
 
             Assert.False(leaf.IsLeaf(root, intermediate1));
+            Assert.False(leaf.IsSignedBy(root));
+            Assert.False(leaf.IsSignedBy(intermediate1));
         }
     }
 }
