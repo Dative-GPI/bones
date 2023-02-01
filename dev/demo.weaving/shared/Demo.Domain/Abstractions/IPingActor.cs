@@ -1,4 +1,4 @@
-namespace Test.Abstractions
+namespace Demo.Domain.Abstractions
 {
     public interface IPingActor
     {

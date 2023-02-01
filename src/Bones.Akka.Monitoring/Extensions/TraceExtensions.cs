@@ -5,12 +5,14 @@ using Akka.Actor;
 using Bones;
 using Bones.Monitoring;
 
+using static Bones.Akka.Monitoring.Consts;
+
 namespace Bones.Akka.Monitoring
 {
     public static class TraceExtensions
     {
         static ActivitySource activitySource = new ActivitySource(
-            "Bones.Akka.Monitoring",
+            BONES_AKKA_MONITORING_INSTRUMENTATION,
             "1.0.0");
         static List<IActorRef> actors = new List<IActorRef>();
 

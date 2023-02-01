@@ -2,7 +2,6 @@ namespace Bones.Akka.Monitoring
 {
     public static class AkkaMetricsNames
     {
-        public const string AKKA_METER_NAME = "Bones.Akka.Meter";
         public const string CREATED_ACTOR_COUNTER = "akka.actor.created";
         public const string RESTARTED_ACTOR_COUNTER = "akka.actor.restarted";
         public const string STOPPED_ACTOR_COUNTER = "akka.actor.stopped";

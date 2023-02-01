@@ -8,12 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Bones.Akka.Monitoring
 {
-    public class DativeReceiveActor : ReceiveActor
+    public class MonitoredReceiveActor : ReceiveActor
     {
         private ITraceFactory _traceFactory;
         private ActorCounters _counters;
 
-        public DativeReceiveActor(IServiceProvider sp)
+        public MonitoredReceiveActor(IServiceProvider sp)
         {
             _traceFactory = sp.GetRequiredService<ITraceFactory>();
 
@@ -22,7 +22,7 @@ namespace Bones.Akka.Monitoring
             _counters.IncrementCreatedActorsCounter();
         }
 
-        protected void ReceiveAsyncMonitored<T>(Func<T, Task> handler, Predicate<T> shouldHandle = null)
+        protected void MonitoredReceiveAsync<T>(Func<T, Task> handler, Predicate<T> shouldHandle = null)
         {
             ReceiveAsync(MonitoredFunc<T>(handler), shouldHandle);
         }
@@ -44,7 +44,7 @@ namespace Bones.Akka.Monitoring
             };
         }
 
-        protected void ReceiveMonitored<T>(Action<T> handler, Predicate<T> shouldHandle = null)
+        protected void MonitoredReceive<T>(Action<T> handler, Predicate<T> shouldHandle = null)
         {
             Receive<T>(MonitoredAction<T>(handler), shouldHandle);
         }
@@ -73,38 +73,16 @@ namespace Bones.Akka.Monitoring
             base.Unhandled(message);
         }
 
-        protected sealed override void PreStart()
-        {
-            OnPreStart();
-        }
-
-        protected virtual void OnPreStart()
-        {
-            //do nothing can override
-        }
-
-        protected sealed override void PreRestart(Exception reason, object message)
+        protected override void PreRestart(Exception reason, object message)
         {
             _counters.IncrementRestartedActorsCounter(new KeyValuePair<string, object>(AkkaMetricsNames.EXCEPTION_TYPE_LABEL, reason.GetType().ToColloquialString()));
-            OnPreRestart();
             base.PreRestart(reason, message);
         }
 
-        protected virtual void OnPreRestart()
-        {
-            //do nothing can override
-        }
-
-        protected sealed override void PostStop()
+        protected override void PostStop()
         {
             _counters.IncrementStoppedActorsCounter();
-            OnPoststop();
             base.PostStop();
-        }
-
-        protected virtual void OnPoststop()
-        {
-            //do nothing can override
         }
     }
 }

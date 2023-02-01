@@ -1,4 +1,4 @@
-name: Publish Package to Nuget.org
+name: Push local Packages to Nuget.org
 on:
    push:
     tags: 
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        folder: [Bones, Bones.Akka, Bones.Converters, Bones.Flow, Bones.Grpc, Bones.Tests, Bones.X509, Bones.Akka.Monitoring, Bones.Monitoring]
+        folder: [Bones.Akka.Monitoring.Weaver]
     steps:
       # Checking out repository
       - name: Checkout 🛎️
@@ -20,10 +20,10 @@ jobs:
         run: |
           cd src/${{matrix.folder}}
           export VERSION=${{ github.ref_name }}
-          dotnet pack
+          dotnet build
 
       # Publishing with tag name as version
       - name: Publishing to NuGet 🚀
         run: |
-          cd src/${{ matrix.folder}}/bin/Debug
-          dotnet nuget push ${{matrix.folder}}.${{ github.ref_name}}.nupkg -k ${{ secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
+          cd src/${{ matrix.folder}}/nugets
+          dotnet nuget push ${{matrix.folder}}.Fody.${{ github.ref_name}}.nupkg -k ${{ secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json

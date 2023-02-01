@@ -1,4 +1,4 @@
-namespace Bones.Akka.Monitoring.Console.Messages
+namespace Demo.Core.Messages
 {
     public class Response
     {

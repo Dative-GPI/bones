@@ -4,6 +4,8 @@ using System.Diagnostics.Metrics;
 using Akka.Actor;
 using Bones.Monitoring;
 
+using static Bones.Akka.Monitoring.Consts;
+
 namespace Bones.Akka.Monitoring {
     public class AkkaMonitor
     {
@@ -14,7 +16,7 @@ namespace Bones.Akka.Monitoring {
         public AkkaMonitor(ITraceFactory traceFactory)
         {
             _traceFactory = traceFactory;
-            _akkaMeter = new Meter(AkkaMetricsNames.AKKA_METER_NAME, "1.0.0");
+            _akkaMeter = new Meter(BONES_AKKA_MONITORING_METER, "1.0.0");
         }
 
         public ActorCounters GetCounters(IActorContext context)

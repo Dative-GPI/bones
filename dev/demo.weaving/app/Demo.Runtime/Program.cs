@@ -5,12 +5,13 @@ using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using Microsoft.Extensions.DependencyInjection;
-using Bones.Akka.Monitoring.Console.Actors;
-using Test.Abstractions;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Resources;
 
-namespace Bones.Akka.Monitoring.Console
+using static Bones.Akka.Monitoring.Consts;
+using Demo.Core.DI;
+
+namespace Demo.Runtime
 {
     public class Program
     {
@@ -19,12 +20,12 @@ namespace Bones.Akka.Monitoring.Console
         {
             Sdk.CreateMeterProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
-                .AddBonesAkkaMonitoringMeter()
+                .AddMeter(BONES_AKKA_MONITORING_METER)
                 .AddConsoleExporter((exporterOptions, metricsOptions) => metricsOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000)
                 .Build();
 
             Sdk.CreateTracerProviderBuilder()
-                .AddBonesAkkaMonitoringInstrumentation()
+                .AddSource(BONES_AKKA_MONITORING_INSTRUMENTATION)
                 .AddConsoleExporter()
                 .Build();
                 
@@ -34,10 +35,7 @@ namespace Bones.Akka.Monitoring.Console
                     services.AddHostedService<Worker>();
                     services.AddAkkaMonitoring();
                     services.AddAkka("BonesAkkaMonitoringConsole");
-
-                    services.AddRootCreator<RootActor>();
-                    services.AddCreator<IPingActor, PingActor>();
-                    services.AddCreator<IPongActor, PongActor>();
+                    services.AddCore();
 
                     // services.AddOpenTelemetry()
                     //     .WithTracing(builder =>

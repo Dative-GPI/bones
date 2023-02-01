@@ -1,21 +1,20 @@
 
 using Akka.Actor;
-using Bones.Akka.Monitoring.Console.Messages;
-using Bones.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Test.Abstractions;
+using Demo.Domain.Abstractions;
+using Demo.Core.Messages;
 
-namespace Bones.Akka.Monitoring.Console.Actors
+namespace Demo.Core.Actors
 {
-    public class PongActor : DativeReceiveActor, IPongActor
+    public class PongActor : ReceiveActor, IPongActor
     {
         private readonly ILogger<PongActor> _logger;
-        public PongActor(IServiceProvider sp): base(sp)
+        public PongActor(IServiceProvider sp)
         {
             _logger = sp.GetRequiredService<ILogger<PongActor>>();
             _logger.LogInformation("PongActor created");
-            ReceiveAsyncMonitored<Request>(async m =>
+            ReceiveAsync<Request>(async m =>
             {
                 await Task.Delay(new Random().Next() % 2000);
                 Context.Sender.Tell(Response.Instance);

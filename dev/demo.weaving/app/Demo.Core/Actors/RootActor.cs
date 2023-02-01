@@ -1,9 +1,10 @@
 using Akka.Actor;
-using Bones.Akka.Monitoring.Console.Messages;
+using Bones.Akka;
+using Demo.Core.Messages;
+using Demo.Domain.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Test.Abstractions;
 
-namespace Bones.Akka.Monitoring.Console.Actors
+namespace Demo.Core.Actors
 {
     public class RootActor : ReceiveActor
     {
@@ -23,10 +24,6 @@ namespace Bones.Akka.Monitoring.Console.Actors
         }
 
         private void Started()
-        {
-        }
-
-        protected override void PostStop()
         {
         }
 

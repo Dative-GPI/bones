@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputPath>bin</OutputPath>
+    <Version>$(VERSION)</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FodyHelpers" Version="6.6.4" />
+  </ItemGroup>
+</Project>
