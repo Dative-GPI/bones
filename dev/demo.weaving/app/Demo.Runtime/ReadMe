@@ -1,0 +1,1 @@
+You have to build Bones.Akka.Monitoring.Weaver.Fody then Bones.Akka.Monitoring.Weaver.Fody to create the nuget package before running the app

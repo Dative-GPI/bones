@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <PackageOutputPath>./nugets</PackageOutputPath>
+    <Version>$(VERSION)</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fody" Version="6.6.4" PrivateAssets="none" />
+    <PackageReference Include="FodyPackaging" Version="6.6.4" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

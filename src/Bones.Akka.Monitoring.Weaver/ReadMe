@@ -1,0 +1,1 @@
+You should know that when you build this project, it consume the ../"{PROJECT_NAME}.Fody" to create the nuget package

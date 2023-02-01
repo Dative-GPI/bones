@@ -1,0 +1,31 @@
+name: Push local Packages to Nuget.org
+on:
+   push:
+    tags: 
+      - "*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        folder: [Bones.Akka.Monitoring.Weaver]
+    steps:
+      # Checking out repository
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2.3.1
+
+      # pack file to publish to NuGet
+      - name: Create a NuGet Package 🔧
+        run: |
+          export VERSION=${{ github.ref_name }}
+          cd src/${{matrix.folder}}.Fody
+          dotnet build
+          cd ../${{matrix.folder}}
+          dotnet build
+
+      # Publishing with tag name as version
+      - name: Publishing to NuGet 🚀
+        run: |
+          cd src/${{ matrix.folder}}/nugets
+          dotnet nuget push ${{matrix.folder}}.Fody.${{ github.ref_name}}.nupkg -k ${{ secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka" Version="1.4.49" />
+    <PackageReference Include="Bones.Akka.Monitoring.Weaver.Fody" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Bones.Akka.Monitoring\Bones.Akka.Monitoring.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Bones.Akka\Bones.Akka.csproj" />
+    <ProjectReference Include="..\..\shared\Demo.Domain\Demo.Domain.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Bones.Akka.Monitoring.Weaver\Bones.Akka.Monitoring.Weaver.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);../../../../src/Bones.Akka.Monitoring.Weaver/nugets/;https://api.nuget.org/v3/index.json</RestoreSources>
+  </PropertyGroup>
+
+
+</Project>
