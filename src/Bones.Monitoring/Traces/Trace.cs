@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Bones.Flow.Core
+namespace Bones.Monitoring.Core
 {
     public class Trace : ITrace
     {

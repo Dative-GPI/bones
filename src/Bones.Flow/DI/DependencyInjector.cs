@@ -1,4 +1,5 @@
 using Bones.Flow.Core;
+using Bones.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bones.Flow
@@ -13,7 +14,7 @@ namespace Bones.Flow
             services.AddScoped(typeof(IPipelineFactory<,>), typeof(RequestResultPipelineFactory<,>));
             services.AddScoped(typeof(IPipeline<,>), typeof(RequestResultPipeline<,>));
 
-            services.AddScoped<ITraceFactory, TraceFactory>();
+            services.AddMonitoring();
             
             return services;
         }
