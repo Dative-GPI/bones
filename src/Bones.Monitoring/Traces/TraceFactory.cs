@@ -1,21 +1,17 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Bones.Flow.Core
+namespace Bones.Monitoring.Core
 {
-    internal class TraceFactory : ITraceFactory
-    {
-        static ActivitySource activitySource = new ActivitySource(
-            "Bones.Flow.Core",
-            "semver1.0.0");
-        private ILogger<TraceFactory> _logger;
+    public class TraceFactory : ITraceFactory
+    {        private ILogger<TraceFactory> _logger;
 
         public TraceFactory(ILogger<TraceFactory> logger)
         {
             _logger = logger;
         }
 
-        public ITrace Create(string name, ITrace parent = null)
+        public ITrace Create(ActivitySource source, string name, ITrace parent = null)
         {
             Activity activity;
 
@@ -32,7 +28,7 @@ namespace Bones.Flow.Core
                     ActivityTraceFlags.None
                 );
 
-                activity = activitySource.StartActivity(
+                activity = source.StartActivity(
                     name,
                     ActivityKind.Internal,
                     context
@@ -40,7 +36,7 @@ namespace Bones.Flow.Core
             }
             else
             {
-                activity = activitySource.StartActivity(
+                activity = source.StartActivity(
                     name,
                     ActivityKind.Internal
                 );

@@ -4,7 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Bones.Monitoring;
 using Microsoft.Extensions.Logging;
 
 using static Bones.Flow.Core.Consts;

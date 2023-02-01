@@ -1,6 +1,6 @@
 using System;
 
-namespace Bones.Flow
+namespace Bones.Monitoring
 {
     public interface ITrace : IDisposable
     {
