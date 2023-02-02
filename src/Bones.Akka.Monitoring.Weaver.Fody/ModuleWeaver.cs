@@ -57,63 +57,53 @@ namespace Bones.Akka.Monitoring.Weaver.Fody
                 processor.InsertBefore(baseCallInsturction, spLoadingInstruction);
 
                 //Replace the calls to the Receive and ReceiveAsync methods for the monitored ones
-                ReplaceAllGenericCalls(actor, RECEIVE, receiveReference);
-                ReplaceAllGenericCalls(actor, RECEIVE_ASYNC, receiveAsyncReferend);
-                
-                foreach(var method in overidedMethods)
+                ReplaceAllCalls(actor, RECEIVE, receiveReference);
+                ReplaceAllCalls(actor, RECEIVE_ASYNC, receiveAsyncReferend);
+
+                foreach (var method in overidedMethods)
                 {
                     var methodReference = module.ImportReference(method);
-                    ReplaceAllCalls(actor, method.Name, methodReference);    
+                    ReplaceAllCalls(actor, method.Name, methodReference);
                 }
             }
 
             WriteMessage("Weaving terminated", MessageImportance.High);
         }
 
-        private void ReplaceAllGenericCalls(TypeDefinition type, string methodName, MethodReference methodReference)
-        {
-            foreach (var m in type.Methods)
-            {
-                var processor = m.Body.GetILProcessor();
-                var instructions = m.Body.Instructions.ToList();
-                var methodCalls = instructions.Where(i => i.OpCode == OpCodes.Call && (i.Operand as MethodReference)?.Name == methodName).ToList();
-
-                foreach (var mc in methodCalls)
-                {
-                    //Only fit type with one generic argument for now
-                    var genericType = (mc.Operand as GenericInstanceMethod).GenericArguments.ToList().SingleOrDefault();
-
-                    if (genericType == null)
-                    {
-                        return;
-                    }
-
-                    var toCall = new GenericInstanceMethod(methodReference);
-                    toCall.GenericArguments.Add(genericType);
-                    toCall.Parameters.Clear();
-
-                    var ins = Instruction.Create(OpCodes.Call, toCall);
-                    foreach (var p in (mc.Operand as MethodReference).Parameters)
-                    {
-                        toCall.Parameters.Add(p);
-                    }
-
-                    mc.Operand = toCall;
-                }
-            }
-        }
-
         private void ReplaceAllCalls(TypeDefinition type, string methodName, MethodReference methodReference)
         {
             foreach (var m in type.Methods)
             {
+                if (!m.HasBody) continue;
                 var processor = m.Body.GetILProcessor();
                 var instructions = m.Body.Instructions.ToList();
                 var methodCalls = instructions.Where(i => i.OpCode == OpCodes.Call && (i.Operand as MethodReference)?.Name == methodName).ToList();
 
                 foreach (var mc in methodCalls)
                 {
-                    mc.Operand = methodReference;
+
+                    if (mc.Operand is GenericInstanceMethod genericInstanceMethod)
+                    {
+                        //Only fit type with one generic argument for now
+                        var genericType = genericInstanceMethod.GenericArguments.SingleOrDefault();
+
+                        if(genericType == null)
+                            throw new Exception("Generic type not found for method " + (mc.Operand as MethodReference).Name);
+
+                        var toCall = new GenericInstanceMethod(methodReference);
+                        toCall.GenericArguments.Add(genericType);
+                        toCall.Parameters.Clear();
+                        foreach (var p in (mc.Operand as MethodReference).Parameters)
+                        {
+                            toCall.Parameters.Add(p);
+                        }
+                        mc.Operand = toCall;
+                    }
+                    else 
+                    {
+                        mc.Operand = methodReference;
+                        return;
+                    }
                 }
             }
         }
