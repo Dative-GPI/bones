@@ -9,7 +9,7 @@ namespace Bones.Monitoring
         public static IServiceCollection AddMonitoring(this IServiceCollection services)
         {
 
-            services.AddScoped<ITraceFactory, TraceFactory>();
+            services.AddSingleton<ITraceFactory, TraceFactory>();
             
             return services;
         }

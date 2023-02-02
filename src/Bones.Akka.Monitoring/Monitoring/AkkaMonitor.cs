@@ -10,12 +10,10 @@ namespace Bones.Akka.Monitoring {
     public class AkkaMonitor
     {
         private Meter _akkaMeter;
-        private ITraceFactory _traceFactory;
         public ConcurrentDictionary<string, ActorCounters> counters = new ConcurrentDictionary<string, ActorCounters>();
 
-        public AkkaMonitor(ITraceFactory traceFactory)
+        public AkkaMonitor()
         {
-            _traceFactory = traceFactory;
             _akkaMeter = new Meter(BONES_AKKA_MONITORING_METER, "1.0.0");
         }
 
