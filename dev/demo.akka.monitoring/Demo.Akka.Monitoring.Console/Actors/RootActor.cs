@@ -18,7 +18,10 @@ namespace Demo.Akka.Monitoring.Console.Actors
 
             var pong = Context.ActorOf(createPong(Context), "ponga");
             var ping = Context.ActorOf(createPing(Context), "pinga");
-            
+
+            var stopped = Context.ActorOf(createPong(Context), "stopActor");
+            Context.Stop(stopped);
+
             ping.Tell(new Request(pong));
             
             Started();

@@ -21,7 +21,7 @@ namespace Bones.Akka.Monitoring
         
         public ActorCounters(IActorContext context, Meter meter)
         {
-            _actorTypeTag = new KeyValuePair<string, object>(AkkaMetricsNames.ACTOR_TYPE_LABEL, context.Props.TypeName);
+            _actorTypeTag = new KeyValuePair<string, object>(AkkaMetricsNames.ACTOR_TYPE_LABEL, context.Props.Type.ToString());
             _actorPathTag = new KeyValuePair<string, object>(AkkaMetricsNames.ACTOR_PATH_LABEL, context.Self.Path.ToString());
 
             _receivedMessagesCounter = meter.CreateCounter<int>(AkkaMetricsNames.RECEIVED_MESSAGE_COUNTER, description: "count the number of messages received by each message type / actor type pair.");
@@ -43,7 +43,7 @@ namespace Bones.Akka.Monitoring
 
         public void IncrementCreatedActorsCounter()
         {
-            _receivedMessagesCounter.Add(1, _actorTypeTag, _actorPathTag);
+            _createdActorCounter.Add(1, _actorTypeTag, _actorPathTag);
         }
 
         public void IncrementMessagesCounter(KeyValuePair<string, object> messageTag)

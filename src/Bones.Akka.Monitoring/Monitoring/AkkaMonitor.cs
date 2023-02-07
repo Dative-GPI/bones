@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -19,7 +20,7 @@ namespace Bones.Akka.Monitoring {
 
         public ActorCounters GetCounters(IActorContext context)
         {
-            return counters.GetOrAdd(context.Self.Path.Address.ToString(), new ActorCounters(context, _akkaMeter));
+            return counters.GetOrAdd(context.Self.Path.ToString(), new ActorCounters(context, _akkaMeter));
         }
     }
 }

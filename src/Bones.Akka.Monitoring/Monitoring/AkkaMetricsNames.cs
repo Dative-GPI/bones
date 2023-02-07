@@ -15,7 +15,7 @@ namespace Bones.Akka.Monitoring
         #region counters tags
         public const string ACTOR_TYPE_LABEL = "actor_type";
         public const string ACTOR_PATH_LABEL = "actor_path";
-        public const string MESSAGE_TYPE_LABEL = "messsage_type";
+        public const string MESSAGE_TYPE_LABEL = "message_type";
         public const string SENDER_LABEL = "sender_path";
         public const string EXCEPTION_TYPE_LABEL = "exception_type";
         #endregion
