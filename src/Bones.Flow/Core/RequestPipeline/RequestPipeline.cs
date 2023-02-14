@@ -5,8 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Bones.Monitoring;
 using Microsoft.Extensions.Logging;
+using Bones.Monitoring;
 
 using static Bones.Flow.Core.Consts;
 
@@ -127,28 +127,31 @@ namespace Bones.Flow.Core
 
             var middleware = _middlewares[index];
 
-            using (var trace = _traceFactory.CreateMiddlewareTrace<TRequest>(middleware, _pipelineTrace))
+            var trace = _traceFactory.CreateMiddlewareTrace<TRequest>(middleware, _pipelineTrace);
+
+            try
             {
-                try
-                {
-                    await middleware.HandleAsync(
-                        request,
-                        async () =>
-                        {
-                            trace.Stop();
-                            await ExecuteMiddleware(request, index + 1, cancellationToken, next);
-                            trace.Start();
-                        },
-                        cancellationToken
-                    );
-                }
-                catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
-                {
-                    _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
-                    ex.Data[TRACED] = true;
-                    throw ex;
-                }
+                await middleware.HandleAsync(
+                    request,
+                    async () =>
+                    {
+                        trace.Dispose();
+                        await ExecuteMiddleware(request, index + 1, cancellationToken, next);
+                        trace = _traceFactory.CreateMiddlewareTrace<TRequest>(middleware, _pipelineTrace, true);
+                    },
+                    cancellationToken
+                );
+
             }
+            catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
+            {
+
+                trace.Dispose();
+                _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
+                ex.Data[TRACED] = true;
+                throw ex;
+            }
+            trace.Dispose();
         }
 
         private async Task ExecuteFailureHandlers(TRequest request, Exception source, CancellationToken cancellationToken)

@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Bones.Akka.Monitoring\Bones.Akka.Monitoring.csproj" />
     <ProjectReference Include="..\..\..\src\Bones.Akka\Bones.Akka.csproj" />
+    <ProjectReference Include="..\..\..\src\Bones.Flow\Bones.Flow.csproj" />
   </ItemGroup>
 
 </Project>

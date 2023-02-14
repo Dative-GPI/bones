@@ -4,7 +4,8 @@ using Microsoft.Extensions.Logging;
 namespace Bones.Monitoring.Core
 {
     public class TraceFactory : ITraceFactory
-    {        private ILogger<TraceFactory> _logger;
+    {       
+        private ILogger<TraceFactory> _logger;
 
         public TraceFactory(ILogger<TraceFactory> logger)
         {
@@ -25,7 +26,7 @@ namespace Bones.Monitoring.Core
                 var context = new ActivityContext(
                     ActivityTraceId.CreateFromString(parent.TraceId),
                     ActivitySpanId.CreateFromString(parent.SpanId),
-                    ActivityTraceFlags.None
+                    parent.IsRecording ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None
                 );
 
                 activity = source.StartActivity(

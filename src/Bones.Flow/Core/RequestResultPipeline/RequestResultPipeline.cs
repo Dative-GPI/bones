@@ -195,29 +195,32 @@ namespace Bones.Flow.Core
 
             TResult result = default(TResult);
 
-            using (var trace = _traceFactory.CreateMiddlewareTrace(middleware, _pipelineTrace))
-            {
-                try
-                {
-                    await middleware.HandleAsync(
-                        request,
-                        async () =>
-                        {
-                            trace.Stop();
-                            result = await ExecuteMiddleware(request, counter, cancellationToken, next);
-                            trace.Start();
-                        },
-                        cancellationToken
-                    );
+            var trace = _traceFactory.CreateMiddlewareTrace(middleware, _pipelineTrace);
 
-                }
-                catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
-                {
-                    _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
-                    ex.Data[TRACED] = true;
-                    throw ex;
-                }
+            try
+            {
+                await middleware.HandleAsync(
+                    request,
+                    async () =>
+                    {
+                        trace.Dispose();
+                        result = await ExecuteMiddleware(request, counter, cancellationToken, next);
+                        trace = _traceFactory.CreateMiddlewareTrace(middleware, _pipelineTrace, true);
+                    },
+                    cancellationToken
+                );
+
             }
+            catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
+            {
+                trace.Dispose();
+                _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
+                ex.Data[TRACED] = true;
+                throw ex;
+            }
+            trace.Dispose();
+
+
 
             return result;
         }
@@ -229,30 +232,32 @@ namespace Bones.Flow.Core
 
             TResult result = default(TResult);
 
-            using (var trace = _traceFactory.CreateMiddlewareTrace(middleware, _pipelineTrace))
-            {
-                try
-                {
-                    result = await middleware.HandleAsync(
-                        request,
-                        async () =>
-                        {
-                            trace.Stop();
-                            var tmp = await ExecuteMiddleware(request, counter, cancellationToken, next);
-                            trace.Start();
-                            return tmp;
-                        },
-                        cancellationToken
-                    );
+            var trace = _traceFactory.CreateMiddlewareTrace(middleware, _pipelineTrace);
 
-                }
-                catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
-                {
-                    _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
-                    ex.Data[TRACED] = true;
-                    throw ex;
-                }
+            try
+            {
+                result = await middleware.HandleAsync(
+                    request,
+                    async () =>
+                    {
+                        trace.Dispose();
+                        var tmp = await ExecuteMiddleware(request, counter, cancellationToken, next);
+                        trace = _traceFactory.CreateMiddlewareTrace(middleware, _pipelineTrace, true);
+                        return tmp;
+                    },
+                    cancellationToken
+                );
+
             }
+            catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
+            {
+                trace.Dispose();
+                _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
+                ex.Data[TRACED] = true;
+                throw ex;
+            }
+            trace.Dispose();
+
 
             return result;
         }
