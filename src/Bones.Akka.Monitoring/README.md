@@ -27,6 +27,11 @@ Create a FodyWeavers.xml file at the root folder of your project containing :
 </Weavers>
 ```
 
+### Inject to DI
+``` csharp
+builder.Services.AddAkkaMonitoring()
+```
+
 ### Enjoy
 Once you build your project, all your actors which inherit from ReceiveActor will provide metrics and traces. 
 
