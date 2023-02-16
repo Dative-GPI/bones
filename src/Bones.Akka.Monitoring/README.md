@@ -14,6 +14,7 @@ To automatically monitor your app without code changes, you can use our weaver a
 
 ### Add following packages to your project :
 ```bash
+dotnet add package Bones.Akka.Monitoring
 dotnet add package Fody
 dotnet add package Bones.Akka.Monitoring.Weaver.Fody
 ```
