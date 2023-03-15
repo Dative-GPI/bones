@@ -49,12 +49,12 @@ namespace Bones.Akka.Monitoring.Weaver.Fody
                 var constructor = actor.Methods.FirstOrDefault(m => m.IsConstructor);
                 var processor = constructor.Body.GetILProcessor();
                 var instructions = constructor.Body.Instructions.ToList();
-                var baseCallInsturction = Instruction.Create(OpCodes.Call, constructorReference);
+                var baseCallInstruction = Instruction.Create(OpCodes.Call, constructorReference);
                 var serviceProvider = (constructor as MethodDefinition).Parameters.FirstOrDefault(p => p.ParameterType.Name == "IServiceProvider");
                 var spLoadingInstruction = Instruction.Create(OpCodes.Ldarg, serviceProvider);
                 var oldBaseCall = constructor.Body.Instructions.FirstOrDefault(i => i.OpCode == OpCodes.Call);
-                processor.Replace(oldBaseCall, baseCallInsturction);
-                processor.InsertBefore(baseCallInsturction, spLoadingInstruction);
+                processor.Replace(oldBaseCall, baseCallInstruction);
+                processor.InsertBefore(baseCallInstruction, spLoadingInstruction);
 
                 //Replace the calls to the Receive and ReceiveAsync methods for the monitored ones
                 ReplaceAllCalls(actor, RECEIVE, receiveReference);

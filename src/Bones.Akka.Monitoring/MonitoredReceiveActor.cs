@@ -81,6 +81,7 @@ namespace Bones.Akka.Monitoring
 
         protected override void PostStop()
         {
+            _counters.UpdateMessageQueueCounter(0);
             _counters.IncrementStoppedActorsCounter();
             base.PostStop();
         }
