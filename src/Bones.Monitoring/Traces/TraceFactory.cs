@@ -8,9 +8,9 @@ namespace Bones.Monitoring.Core
     public class TraceFactory : ITraceFactory
     {
         private ILogger<TraceFactory> _logger;
-        private IOptionsSnapshot<BonesMonitoringOptions> _options;
+        private IOptionsMonitor<BonesMonitoringOptions> _options;
 
-        public TraceFactory(ILogger<TraceFactory> logger, IOptionsSnapshot<BonesMonitoringOptions> options)
+        public TraceFactory(ILogger<TraceFactory> logger, IOptionsMonitor<BonesMonitoringOptions> options)
         {
             _logger = logger;
             _options = options;
@@ -53,8 +53,8 @@ namespace Bones.Monitoring.Core
 
         public ITrace Enrich(ITrace trace, object param, string optionsName)
         {
-            var enricher = _options.Get(optionsName).SpanEnricher;
-            if(enricher != null) enricher(trace, param);
+            var option = _options.Get(optionsName);
+            if(option != null && option.SpanEnricher != null) option.SpanEnricher(trace, param);
             return trace;
         }
     }

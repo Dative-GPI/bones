@@ -24,6 +24,7 @@ namespace Bones.Flow.Tests
             serviceCollection.AddDebug(output);
 
             serviceCollection
+                .AddOptions()
                 .AddScoped<ActorLicitMiddleware>()
                 .AddScoped<HelloWorldCommandHandler>()
                 .AddScoped(typeof(LogRequestHandler<>))

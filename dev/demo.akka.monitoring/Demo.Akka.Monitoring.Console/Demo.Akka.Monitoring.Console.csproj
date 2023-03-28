@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="akka" Version="1.4.48" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Opentelemetry.Exporter.Console" Version="1.4.0-rc.2" />
     <PackageReference Include="Opentelemetry.Extensions.Hosting" Version="1.4.0-rc.2" />
   </ItemGroup>

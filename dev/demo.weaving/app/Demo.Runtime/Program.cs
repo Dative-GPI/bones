@@ -34,7 +34,7 @@ namespace Demo.Runtime
                         {
                             builder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("demo"));
                             builder.AddMeter(BONES_AKKA_MONITORING_METER);
-                            // builder.AddConsoleExporter();
+                            builder.AddConsoleExporter();
                         });
 
                     services.AddCore();
