@@ -24,8 +24,7 @@ namespace Bones.Flow
         const string AFTER = "_after";
         const string BEFORE = "_before";
 
-
-        public static ITrace CreatePipelineTrace<TRequest>(this ITraceFactory factory)
+        public static ITrace CreatePipelineTrace<TRequest>(this ITraceFactory factory, object param = null)
             where TRequest : IRequest
         {
             var trace = factory.Create(activitySource, PIPELINE);
@@ -34,12 +33,14 @@ namespace Bones.Flow
             {
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, PIPELINE);
+
+                trace.Enrich(factory, param);
             }
 
             return trace;
         }
 
-        public static ITrace CreatePipelineTrace<TRequest, TResult>(this ITraceFactory factory)
+        public static ITrace CreatePipelineTrace<TRequest, TResult>(this ITraceFactory factory, object param = null)
             where TRequest : IRequest<TResult>
         {
             var trace = factory.Create(activitySource, PIPELINE);
@@ -49,12 +50,14 @@ namespace Bones.Flow
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_RESULT, typeof(TResult).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, PIPELINE);
+
+                trace.Enrich(factory, param);
             }
 
             return trace;
         }
 
-        public static ITrace CreateMiddlewareTrace<TRequest>(this ITraceFactory factory, IMiddleware<TRequest> middleware, ITrace pipelineTrace, Boolean after = false)
+        public static ITrace CreateMiddlewareTrace<TRequest>(this ITraceFactory factory, IMiddleware<TRequest> middleware, ITrace pipelineTrace, Boolean after = false, object param = null)
             where TRequest : IRequest
         {
             var name = middleware.GetType().ToColloquialString();
@@ -65,12 +68,14 @@ namespace Bones.Flow
             {
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, MIDDLEWARE);
+
+                trace.Enrich(factory, param);
             }
 
             return trace;
         }
 
-        public static ITrace CreateMiddlewareTrace<TRequest, TResult>(this ITraceFactory factory, IMiddleware<TRequest, TResult> middleware, ITrace pipelineTrace, Boolean after = false)
+        public static ITrace CreateMiddlewareTrace<TRequest, TResult>(this ITraceFactory factory, IMiddleware<TRequest, TResult> middleware, ITrace pipelineTrace, Boolean after = false, object param = null)
             where TRequest : IRequest<TResult>
         {
             var name = middleware.GetType().ToColloquialString();
@@ -82,19 +87,23 @@ namespace Bones.Flow
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_RESULT, typeof(TResult).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, MIDDLEWARE);
+
+                trace.Enrich(factory, param);
             }
 
             return trace;
         }
 
-        public static ITrace CreateCommitTrace(this ITraceFactory factory, ITrace pipelineTrace)
+        public static ITrace CreateCommitTrace(this ITraceFactory factory, ITrace pipelineTrace, object param = null)
         {
             var trace = factory.Create(activitySource, COMMIT, pipelineTrace);
 
+            trace.Enrich(factory, param);
+
             return trace;
         }
 
-        public static ITrace CreateFailureHandlerTrace<TRequest>(this ITraceFactory factory, IFailureHandler<TRequest> failureHandler, ITrace pipelineTrace) where TRequest : IRequest
+        public static ITrace CreateFailureHandlerTrace<TRequest>(this ITraceFactory factory, IFailureHandler<TRequest> failureHandler, ITrace pipelineTrace, object param = null) where TRequest : IRequest
         {
             var trace = factory.Create(activitySource, failureHandler.GetType().ToColloquialString(), pipelineTrace);
 
@@ -102,12 +111,14 @@ namespace Bones.Flow
             {
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, FAILUREHANDLER);
+
+                trace.Enrich(factory, param);
             }
 
             return trace;
         }
 
-        public static ITrace CreateSuccessHandlerTrace<TRequest>(this ITraceFactory factory, ISuccessHandler<TRequest> successHandler, ITrace pipelineTrace) where TRequest : IRequest
+        public static ITrace CreateSuccessHandlerTrace<TRequest>(this ITraceFactory factory, ISuccessHandler<TRequest> successHandler, ITrace pipelineTrace, object param = null) where TRequest : IRequest
         {
             var trace = factory.Create(activitySource, successHandler.GetType().ToColloquialString(), pipelineTrace);
 
@@ -115,12 +126,14 @@ namespace Bones.Flow
             {
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, SUCCESSHANDLER);
+
+                trace.Enrich(factory, param);
             }
 
             return trace;
         }
 
-        public static ITrace CreateSuccessHandlerTrace<TRequest, TResult>(this ITraceFactory factory, ISuccessHandler<TRequest, TResult> successHandler, ITrace pipelineTrace)
+        public static ITrace CreateSuccessHandlerTrace<TRequest, TResult>(this ITraceFactory factory, ISuccessHandler<TRequest, TResult> successHandler, ITrace pipelineTrace, object param = null)
             where TRequest : IRequest<TResult>
         {
             var trace = factory.Create(activitySource, successHandler.GetType().ToColloquialString(), pipelineTrace);
@@ -130,8 +143,19 @@ namespace Bones.Flow
                 trace.SetTag(PIPELINE_REQUEST, typeof(TRequest).ToColloquialString());
                 trace.SetTag(PIPELINE_RESULT, typeof(TResult).ToColloquialString());
                 trace.SetTag(PIPELINE_NODE_TYPE, SUCCESSHANDLER);
+
+                trace.Enrich(factory, param);
             }
 
+            return trace;
+        }
+
+        private static ITrace Enrich(this ITrace trace, ITraceFactory factory, object param)
+        {
+            if (trace.IsRecording)
+            {
+                trace = factory.Enrich(trace, param, BONES_FLOW_INSTRUMENTATION);
+            }
             return trace;
         }
     }

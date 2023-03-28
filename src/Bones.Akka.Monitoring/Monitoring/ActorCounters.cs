@@ -25,8 +25,8 @@ namespace Bones.Akka.Monitoring
             _actorPathTag = new KeyValuePair<string, object>(AkkaMetricsNames.ACTOR_PATH_LABEL, context.Self.Path.ToString());
 
             _receivedMessagesCounter = meter.CreateCounter<int>(AkkaMetricsNames.RECEIVED_MESSAGE_COUNTER, description: "count the number of messages received by each message type / actor type pair.");
-            _createdActorCounter = meter.CreateCounter<int>(AkkaMetricsNames.CREATED_ACTOR_COUNTER, description: "counts the number of actor restarts over time.");
-            _restartedActorCounter = meter.CreateCounter<int>(AkkaMetricsNames.RESTARTED_ACTOR_COUNTER, description: "counts the number of actors started.");
+            _createdActorCounter = meter.CreateCounter<int>(AkkaMetricsNames.CREATED_ACTOR_COUNTER,description: "counts the number of actors started." );
+            _restartedActorCounter = meter.CreateCounter<int>(AkkaMetricsNames.RESTARTED_ACTOR_COUNTER, description: "counts the number of actor restarts over time.");
             _stoppedActorCounter = meter.CreateCounter<int>(AkkaMetricsNames.STOPPED_ACTOR_COUNTER, description: "counts the number of actors stopped.");
             _messageQueueCounter = meter.CreateObservableGauge<int>(AkkaMetricsNames.MAILBOX_GAUGE, 
                 () => new Measurement<int>(this._currentNumberOfMessages, _actorTypeTag, _actorPathTag), description: "a gauge that measures the queue length of the actor. Should be enabled");

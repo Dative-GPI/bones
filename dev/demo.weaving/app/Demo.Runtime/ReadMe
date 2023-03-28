@@ -1,1 +1,5 @@
-You have to build Bones.Akka.Monitoring.Weaver.Fody then Bones.Akka.Monitoring.Weaver.Fody to create the nuget package before running the app
+Before running your app, you have to create the referenced nuget package in the csporj following steps below :
+1. Build Bones.Akka.Monitoring.Weaver.Fody
+2. Build Bones.Akka.Monitoring.Weaver which will consume the first project to create a nuget package
+
+Once you runned the demo, you can use ILSpy to inspect the code of the weaved DLL files.

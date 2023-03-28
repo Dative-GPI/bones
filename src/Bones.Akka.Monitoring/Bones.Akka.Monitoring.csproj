@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="akka" Version="1.4.48" />
+    <PackageReference Include="Akka" Version="1.4.48" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="System.Diagnostics.Diagnosticsource" Version="7.0.0" />
   </ItemGroup>

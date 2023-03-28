@@ -1,22 +1,26 @@
+using System;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Bones.Monitoring.Core
 {
     public class TraceFactory : ITraceFactory
-    {       
+    {
         private ILogger<TraceFactory> _logger;
+        private IOptionsSnapshot<BonesMonitoringOptions> _options;
 
-        public TraceFactory(ILogger<TraceFactory> logger)
+        public TraceFactory(ILogger<TraceFactory> logger, IOptionsSnapshot<BonesMonitoringOptions> options)
         {
             _logger = logger;
+            _options = options;
         }
 
         public ITrace Create(ActivitySource source, string name, ITrace parent = null)
         {
             Activity activity;
 
-            if(parent != null && !(parent is Trace))
+            if (parent != null && !(parent is Trace))
             {
                 throw new System.ApplicationException("You shouldn't use specific trace without implementing our own ITraceFactory");
             }
@@ -43,7 +47,15 @@ namespace Bones.Monitoring.Core
                 );
             }
 
-            return new Trace(activity);
+            var result = new Trace(activity);
+            return result;
+        }
+
+        public ITrace Enrich(ITrace trace, object param, string optionsName)
+        {
+            var enricher = _options.Get(optionsName).SpanEnricher;
+            if(enricher != null) enricher(trace, param);
+            return trace;
         }
     }
 }

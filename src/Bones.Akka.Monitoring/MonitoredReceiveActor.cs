@@ -32,7 +32,7 @@ namespace Bones.Akka.Monitoring
             var messageTag = new KeyValuePair<string, object>(AkkaMetricsNames.MESSAGE_TYPE_LABEL, typeof(T).ToColloquialString());
             return async (param) =>
             {
-                using (var activity = _traceFactory.CreateActorMessageTrace<T>(Context))
+                using (var activity = _traceFactory.CreateActorMessageTrace<T>(Context, param))
                 {
                     _counters.IncrementMessagesCounter(messageTag);
                     _counters.UpdateMessageQueueCounter((Context as ActorCell).NumberOfMessages);
@@ -55,7 +55,7 @@ namespace Bones.Akka.Monitoring
             var messageTag = new KeyValuePair<string, object>(AkkaMetricsNames.MESSAGE_TYPE_LABEL, typeof(T).ToColloquialString());
             return (param) =>
             {
-                using (var activity = _traceFactory.CreateActorMessageTrace<T>(Context))
+                using (var activity = _traceFactory.CreateActorMessageTrace<T>(Context, param))
                 {
                     _counters.IncrementMessagesCounter(messageTag);
                     _counters.UpdateMessageQueueCounter((Context as ActorCell).NumberOfMessages);

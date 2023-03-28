@@ -1,15 +1,15 @@
 ﻿using Bones.Akka.Monitoring.DI;
-using Bones.Akka.DI;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Resources;
+using Demo.Core.DI;
+using Bones.Flow;
 
 using static Bones.Akka.Monitoring.Consts;
-using Demo.Core.DI;
+using static Bones.Flow.Core.Consts;
 
 namespace Demo.Runtime
 {
@@ -18,38 +18,39 @@ namespace Demo.Runtime
 
         public static void Main(string[] args)
         {
-            Sdk.CreateMeterProviderBuilder()
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
-                .AddMeter(BONES_AKKA_MONITORING_METER)
-                .AddConsoleExporter((exporterOptions, metricsOptions) => metricsOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000)
-                .Build();
-
-            Sdk.CreateTracerProviderBuilder()
-                .AddSource(BONES_AKKA_MONITORING_INSTRUMENTATION)
-                .AddConsoleExporter()
-                .Build();
-                
             IHost host = Host.CreateDefaultBuilder(args)
                 .ConfigureServices(services =>
                 {
-                    services.AddHostedService<Worker>();
-                    services.AddAkkaMonitoring();
-                    services.AddAkka("BonesAkkaMonitoringConsole");
-                    services.AddCore();
+                    services.AddOpenTelemetry()
+                        .WithTracing(builder =>
+                        {
+                            builder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+                                .AddService("demo"));
+                            builder.AddSource(BONES_AKKA_MONITORING_INSTRUMENTATION);
+                            builder.AddSource(BONES_FLOW_INSTRUMENTATION);
+                            builder.AddConsoleExporter();
+                        })
+                        .WithMetrics(builder =>
+                        {
+                            builder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("demo"));
+                            builder.AddMeter(BONES_AKKA_MONITORING_METER);
+                            // builder.AddConsoleExporter();
+                        });
 
-                    // services.AddOpenTelemetry()
-                    //     .WithTracing(builder =>
-                    //     {
-                    //         builder.AddBonesAkkaMonitoringInstrumentation();
-                    //         builder.AddConsoleExporter();
-                    //     })
-                    //     .WithMetrics(builder =>
-                    //     {
-                    //         builder.AddBonesAkkaMonitoringMeter();
-                    //         builder.AddMeter("MyCompany.MyProduct.MyLibrary");
-                    //         builder.AddConsoleExporter();
-                    //     })
-                    //     .StartWithHost();
+                    services.AddCore();
+                    services.AddHostedService<Worker>();
+                    services.AddAkkaMonitoring(options =>
+                        options.SpanEnricher = (trace, param) =>
+                        {
+                            trace.SetTag("Source.name", "Bones.Akka.Monitoring");
+                        }
+                    );
+                    services.AddFlow(options =>
+                        options.SpanEnricher = (trace, param) =>
+                        {
+                            trace.SetTag("Source.name", "Bones.Flow");
+                        }
+                        );
                 })
                 .ConfigureLogging(logging =>
                 {
