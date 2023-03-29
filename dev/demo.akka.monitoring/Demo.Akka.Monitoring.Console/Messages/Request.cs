@@ -4,7 +4,7 @@ namespace Demo.Akka.Monitoring.Console.Messages
 {
     public class Request
     {
-        public readonly IActorRef? Target;
+        public readonly IActorRef Target;
 
         public Request()
         {

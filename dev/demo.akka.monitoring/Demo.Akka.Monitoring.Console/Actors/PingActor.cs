@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Demo.Akka.Monitoring.Console.Abstractions;
 using Bones.Akka.Monitoring;
 using Demo.Akka.Monitoring.Console.Messages;
+using System;
+using System.Threading.Tasks;
 
 namespace Demo.Akka.Monitoring.Console.Actors
 {

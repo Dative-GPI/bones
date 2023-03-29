@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  tests:
+    build: 
+      context: ..
+      dockerfile: dev/dockerfiles/tests-dotnet.dockerfile
+    networks:
+      - bones
+
+networks:
+  bones:

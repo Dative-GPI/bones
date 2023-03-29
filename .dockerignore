@@ -1,0 +1,17 @@
+**/node_modules
+**/bin
+**/obj
+**/ci
+**/dev
+**/.*
+**/*.local
+**/*.md
+**/*.dockerfile
+**/env
+**/venv
+**/*.pem
+**/*.der
+
+!**/.env
+!**/.eslintrc.js
+!/ci/confs/**
