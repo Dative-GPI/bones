@@ -9,7 +9,7 @@ namespace Demo.Core.Handlers
     {
         public Task HandleAsync(TRequest request, Exception exception, CancellationToken cancellationToken)
         {
-            System.Console.WriteLine(exception.Message);
+            System.Console.WriteLine("EXCEPTION : " + exception.Message);
 
             return Task.CompletedTask;
         }

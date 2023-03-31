@@ -49,7 +49,6 @@ namespace Bones.Akka.Monitoring
             Receive<T>(MonitoredAction<T>(handler), shouldHandle);
         }
 
-
         private Action<T> MonitoredAction<T>(Action<T> handler)
         {
             var messageTag = new KeyValuePair<string, object>(AkkaMetricsNames.MESSAGE_TYPE_LABEL, typeof(T).ToColloquialString());

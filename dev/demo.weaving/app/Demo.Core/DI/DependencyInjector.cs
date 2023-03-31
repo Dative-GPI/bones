@@ -18,6 +18,7 @@ namespace Demo.Core.DI
             services.AddRootCreator<RootActor>();
             services.AddCreator<IPingActor, PingActor>();
             services.AddCreator<IPongActor, PongActor>();
+
             services.AddScoped<ActorLicitMiddleware>();
             services.AddScoped<LogRequestHandler<HelloWorldCommand>>();
             services.AddScoped<LogExceptionHandler<HelloWorldCommand>>();
@@ -27,6 +28,7 @@ namespace Demo.Core.DI
             {
                 var pipeline = sp.GetPipelineFactory<HelloWorldCommand>()
                     .Add<ActorLicitMiddleware>()
+                    .Add<HelloWorldCommandHandler>()
                     .OnSuccess<LogRequestHandler<HelloWorldCommand>>()
                     .OnFailure<LogExceptionHandler<HelloWorldCommand>>()
                     .Build();

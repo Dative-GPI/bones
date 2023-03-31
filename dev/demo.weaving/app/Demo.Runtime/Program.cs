@@ -50,7 +50,7 @@ namespace Demo.Runtime
                         {
                             trace.SetTag("Source.name", "Bones.Flow");
                         }
-                        );
+                    );
                 })
                 .ConfigureLogging(logging =>
                 {

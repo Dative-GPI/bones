@@ -27,7 +27,7 @@ namespace Bones.Akka.Monitoring
             {
                 trace.SetTag(ACTOR_MESSAGE, typeof(TMessage).ToColloquialString());
                 trace.SetTag(SENDER_TYPE, context.Sender.Path.ToString());//Not sure of that, if the context is modified before access to the value 
-                trace.SetTag(ACTOR_TYPE, context.Props.TypeName);
+                trace.SetTag(ACTOR_TYPE, context.Props.Type);
                 trace.SetTag(ACTOR_PATH, context.Self.Path.ToString());
                 
                 trace = factory.Enrich(trace, param, BONES_AKKA_MONITORING_INSTRUMENTATION);

@@ -12,19 +12,22 @@ namespace Demo.Core.Actors
     public class PongActor : ReceiveActor, IPongActor
     {
         private readonly ILogger<PongActor> _logger;
-        private readonly ICommandHandler<HelloWorldCommand> _pipeline;
+        private readonly IServiceProvider _sp;
         public PongActor(IServiceProvider sp)
         {
-            _pipeline = sp.GetRequiredService<ICommandHandler<HelloWorldCommand>>();
-            
             _logger = sp.GetRequiredService<ILogger<PongActor>>();
             _logger.LogInformation("PongActor created");
+
+            _sp = sp;
+
             ReceiveAsync<Request>(async m =>
             {
                 await Task.Delay(new Random().Next() % 2000);
 
                 #region Bones.Flow
-                await _pipeline.HandleAsync(new HelloWorldCommand
+                using var scope = _sp.CreateScope();
+                var pipeline = scope.ServiceProvider.GetRequiredService<ICommandHandler<HelloWorldCommand>>();
+                await pipeline.HandleAsync(new HelloWorldCommand
                 {
                     ActorId = Self.Path.Name
                 });
