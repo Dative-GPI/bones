@@ -1,5 +1,8 @@
 using System;
 using Bones.Monitoring.Core;
+using Bones.Monitoring.Core.Metrics;
+using Bones.Monitoring.Core.Sockets;
+using Bones.Monitoring.Core.Tracing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bones.Monitoring
@@ -14,7 +17,14 @@ namespace Bones.Monitoring
             }
             
             services.AddSingleton<ITraceFactory, TraceFactory>();
-            
+
+            services.AddSingleton<IMetricFactory, MetricFactory>();
+
+            #region Sockets
+            services.AddTelemetryConsumer<SocketsEventsConsumer>();
+            services.AddMetricsConsumer<SocketsMetricsConsumer>();
+            #endregion
+
             return services;
         }
     }

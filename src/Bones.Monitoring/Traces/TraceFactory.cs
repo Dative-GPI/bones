@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Bones.Monitoring.Core
+namespace Bones.Monitoring.Core.Tracing
 {
     public class TraceFactory : ITraceFactory
     {

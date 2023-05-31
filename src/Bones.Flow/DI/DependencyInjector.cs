@@ -4,6 +4,8 @@ using Bones.Monitoring;
 using Bones.Monitoring.Core;
 using Microsoft.Extensions.DependencyInjection;
 
+using static Bones.Flow.Core.Consts;
+
 namespace Bones.Flow
 {
     public static class DependencyInjector
@@ -16,7 +18,7 @@ namespace Bones.Flow
             services.AddScoped(typeof(IPipelineFactory<,>), typeof(RequestResultPipelineFactory<,>));
             services.AddScoped(typeof(IPipeline<,>), typeof(RequestResultPipeline<,>));
 
-            services.AddMonitoring(Consts.BONES_FLOW_INSTRUMENTATION, configureMonitoringOptions);
+            services.AddMonitoring(BONES_FLOW_INSTRUMENTATION, configureMonitoringOptions);
             
             return services;
         }
