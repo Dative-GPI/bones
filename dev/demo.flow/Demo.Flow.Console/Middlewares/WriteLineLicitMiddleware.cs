@@ -19,6 +19,7 @@ namespace Demo.Flow.Console.Middlewares
             }
 
             System.Console.WriteLine("MIDDLEWARE BEFORE " + Activity.Current.SpanId);
+
             await next();
 
             System.Console.WriteLine("MIDDLEWARE AFTER " + Activity.Current.OperationName);
@@ -27,7 +28,8 @@ namespace Demo.Flow.Console.Middlewares
 
 
             System.Console.WriteLine("MIDDLEWARE CREATED " + Activity.Current.SpanId);
-            activity.Stop();
+
+            activity?.Stop();
         }
     }
 }

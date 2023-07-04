@@ -7,8 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
-    <PackageReference Include="Opentelemetry.Exporter.Console" Version="1.4.0-rc.2" />
-    <PackageReference Include="Opentelemetry.Extensions.Hosting" Version="1.4.0-rc.2" />
+    <PackageReference Include="Opentelemetry.Exporter.Console" Version="1.4.0-rc.4" />
+    <PackageReference Include="Opentelemetry.Extensions.Hosting" Version="1.4.0-rc.4" />
   </ItemGroup>
 
   <ItemGroup>

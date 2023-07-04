@@ -11,27 +11,29 @@ using Demo.Flow.Console.Handlers;
 using Demo.Flow.Console.Commands;
 using Demo.Flow.Console.Middlewares;
 
-using static Bones.Flow.Core.Consts;
 using System.Diagnostics;
+using static Bones.Flow.Core.Consts;
+using System.Diagnostics.Metrics;
 
 namespace Demo.Flow.Console
 {
     public class Program
     {
-
-        public static readonly ActivitySource LOCAL_SOURCE = new ActivitySource("local");
+        public const string SOURCE_NAME = "bones.flow.demo";
+        public static readonly ActivitySource LOCAL_SOURCE = new ActivitySource("bones.flow.demo");
 
         public static void Main(string[] args)
         {
             Sdk.CreateMeterProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
-                // .AddConsoleExporter((exporterOptions, metricsOptions) => metricsOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000)
+                .AddMeter(BONES_FLOW_METER)
+                .AddConsoleExporter((exporterOptions, metricsOptions) => metricsOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000)
                 .Build();
 
             Sdk.CreateTracerProviderBuilder()
                 // .AddSource(BONES_AKKA_MONITORING_INSTRUMENTATION)
                 .AddSource(BONES_FLOW_INSTRUMENTATION)
-                .AddSource("local")
+                // .AddSource(SOURCE_NAME)
                 // .AddConsoleExporter()
                 .Build();
 
@@ -77,8 +79,8 @@ namespace Demo.Flow.Console
                 })
                 .ConfigureLogging(logging =>
                 {
-                    logging.SetMinimumLevel(LogLevel.Debug);
-                    logging.AddConsole();
+                    logging.SetMinimumLevel(LogLevel.Information);
+                    // logging.AddConsole();
                 })
                 .Build();
 

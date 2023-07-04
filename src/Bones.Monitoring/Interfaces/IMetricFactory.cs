@@ -6,5 +6,6 @@ namespace Bones.Monitoring
     public interface IMetricFactory
     {
         ICounter<T> GetCounter<T>(string key, Meter meter, string unit = null, string description = null) where T : struct;
+        IHistogram<T> GetHistogram<T>(string key, Meter meter, string unit = null, string description = null) where T : struct;
     }
 }

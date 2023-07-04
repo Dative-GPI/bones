@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Bones.Monitoring;
 
+using System.Diagnostics.Metrics;
+using System.Diagnostics;
+
 using static Bones.Flow.Core.Consts;
 
 namespace Bones.Flow.Core
@@ -21,16 +24,22 @@ namespace Bones.Flow.Core
 
         ITrace _pipelineTrace;
         ITraceFactory _traceFactory;
+        IHistogram<double> _pipelineHistogram;
+        IHistogram<double> _middlewareHistogram;
         ILogger<RequestPipeline<TRequest>> _logger;
 
         IUnitOfWork _unitOfWork;
         bool _configured;
 
         public RequestPipeline(ILogger<RequestPipeline<TRequest>> logger,
+            IMetricFactory metricFactory,
+            Meter meter,
             ITraceFactory traceFactory
         )
         {
             _traceFactory = traceFactory;
+            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, meter);
+            _middlewareHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_MIDDLEWARE_HISTOGRAM, meter);
             _logger = logger;
         }
 
@@ -88,16 +97,17 @@ namespace Bones.Flow.Core
         {
             using (_pipelineTrace = _traceFactory.CreatePipelineTrace<TRequest>())
             {
+                var timer = Stopwatch.StartNew();
                 try
                 {
                     await ExecuteMiddlewares(request, cancellationToken, next);
                 }
-                catch (System.Exception ex)
+                catch (System.Exception ex) when (!ex.Data.Contains(LOGGED))
                 {
                     _logger.LogError(ex, "An error occured executing Pipeline<{TRequest}>", typeof(TRequest).Name);
                     await ExecuteFailureHandlers(request, ex, cancellationToken);
-
-                    throw;
+                    ex.Data[LOGGED] = true;
+                    throw ex;
                 }
 
                 if (beforeSuccess != null)
@@ -107,6 +117,9 @@ namespace Bones.Flow.Core
 
 
                 await ExecuteSuccessHandlers(request, cancellationToken);
+
+                timer.Stop();
+                _pipelineHistogram.Record<TRequest>(timer.ElapsedMilliseconds);
             }
         }
 
@@ -128,6 +141,7 @@ namespace Bones.Flow.Core
             var middleware = _middlewares[index];
 
             var trace = _traceFactory.CreateMiddlewareTrace<TRequest>(middleware, _pipelineTrace);
+            var timer = Stopwatch.StartNew();
 
             try
             {
@@ -135,23 +149,24 @@ namespace Bones.Flow.Core
                     request,
                     async () =>
                     {
-                        trace.Dispose();
                         await ExecuteMiddleware(request, index + 1, cancellationToken, next);
-                        trace = _traceFactory.CreateMiddlewareTrace<TRequest>(middleware, _pipelineTrace, true);
                     },
                     cancellationToken
                 );
 
             }
-            catch (System.Exception ex) when (ex.Data[TRACED] is bool traced && !traced)
+            catch (System.Exception ex) when (!ex.Data.Contains(LOGGED))
             {
 
                 trace.Dispose();
                 _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
-                ex.Data[TRACED] = true;
+                ex.Data[LOGGED] = true;
                 throw ex;
             }
+
+            timer.Stop();
             trace.Dispose();
+            _middlewareHistogram.Record(timer.ElapsedMilliseconds, middleware.GetType().ToColloquialString());
         }
 
         private async Task ExecuteFailureHandlers(TRequest request, Exception source, CancellationToken cancellationToken)

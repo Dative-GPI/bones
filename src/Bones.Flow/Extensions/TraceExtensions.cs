@@ -21,8 +21,6 @@ namespace Bones.Flow
         const string FAILUREHANDLER = "failurehandler";
         const string SUCCESSHANDLER = "successhandler";
         const string COMMIT = "commit";
-        const string AFTER = "_after";
-        const string BEFORE = "_before";
 
         public static ITrace CreatePipelineTrace<TRequest>(this ITraceFactory factory, object param = null)
             where TRequest : IRequest
@@ -57,11 +55,10 @@ namespace Bones.Flow
             return trace;
         }
 
-        public static ITrace CreateMiddlewareTrace<TRequest>(this ITraceFactory factory, IMiddleware<TRequest> middleware, ITrace pipelineTrace, Boolean after = false, object param = null)
+        public static ITrace CreateMiddlewareTrace<TRequest>(this ITraceFactory factory, IMiddleware<TRequest> middleware, ITrace pipelineTrace, object param = null)
             where TRequest : IRequest
         {
             var name = middleware.GetType().ToColloquialString();
-            name += after ? AFTER : BEFORE;
             var trace = factory.Create(activitySource, name, pipelineTrace);
 
             if (trace.IsRecording)
@@ -79,7 +76,6 @@ namespace Bones.Flow
             where TRequest : IRequest<TResult>
         {
             var name = middleware.GetType().ToColloquialString();
-            name += after ? AFTER : BEFORE;
             var trace = factory.Create(activitySource, name, pipelineTrace);
 
             if (trace.IsRecording)

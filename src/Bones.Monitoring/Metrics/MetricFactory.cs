@@ -24,5 +24,18 @@ namespace Bones.Monitoring.Core.Metrics
                 throw new System.InvalidCastException($"Counter with key {key} is not of type {typeof(T)}");
             }
         }
+
+        public IHistogram<T> GetHistogram<T>(string key, Meter meter, string unit = null, string description = null) where T : struct
+        {
+            var counter = counters.GetOrAdd(key, new HistogramMetric<T>(meter, key, unit, description));
+            if(counter is HistogramMetric<T> typedCounter)
+            {
+                return typedCounter;
+            }
+            else
+            {
+                throw new System.InvalidCastException($"Counter with key {key} is not of type {typeof(T)}");
+            }
+        }
     }
 }
