@@ -13,13 +13,16 @@ namespace Bones.Monitoring.Core
 {
     public static class GrafanaExporterExtensions
     {
-        public static void AddLokiExporter(this LoggerConfiguration loggerConfiguration, IConfiguration configuration, string serviceName)
+        public static void AddLokiExporter(this LoggerConfiguration loggerConfiguration, 
+            string connectionString, 
+            string environment, 
+            string serviceName, 
+            string hostname)
         {
-            var lokiConnStr = configuration.GetConnectionString("Loki");
-            if (!String.IsNullOrWhiteSpace(lokiConnStr))
+            if (!String.IsNullOrWhiteSpace(connectionString))
             {
                 var lokiRegex = new Regex(@"(https?:\/\/)(\w+):(.*)@(.*)");
-                MatchCollection matches = lokiRegex.Matches(lokiConnStr);
+                MatchCollection matches = lokiRegex.Matches(connectionString);
                 var match = matches.Single();
                 var lokiUrl = match.Groups[1].Value + match.Groups[4].Value;
                 var lokiUser = match.Groups[2].Value;
@@ -32,22 +35,22 @@ namespace Bones.Monitoring.Core
                             Password = lokiPassword
                         },
                         labels: new List<LokiLabel> {
-                            new LokiLabel() { Key = "Environment", Value = configuration.GetValue<string>("RELEASE_NAMESPACE", "default") },
+                            new LokiLabel() { Key = "Environment", Value = environment },
                             new LokiLabel() { Key = "ServiceName", Value = serviceName },
-                            new LokiLabel() { Key = "Instance", Value = configuration.GetValue<string>("HOSTNAME", Dns.GetHostName())}
+                            new LokiLabel() { Key = "Instance", Value = hostname }
                         });
 
                 Console.WriteLine($"Sending logs to loki endpoint : {lokiUrl}");
             };
         }
 
-        public static void AddTempoExporter(this TracerProviderBuilder builder, IConfiguration configuration)
+        public static void AddTempoExporter(this TracerProviderBuilder builder, string connectionString)
         {
-            var tempoConnStr = configuration.GetConnectionString("Tempo");
-            if (!String.IsNullOrWhiteSpace(tempoConnStr))
+            ;
+            if (!String.IsNullOrWhiteSpace(connectionString))
             {
                 var tempoRegex = new Regex(@"(https?:\/\/[^?]+)(?:\?token=(.*))?");
-                var values = tempoConnStr.Split(";");
+                var values = connectionString.Split(";");
                 foreach (string value in values)
                 {
                     MatchCollection matches = tempoRegex.Matches(value);
@@ -65,14 +68,13 @@ namespace Bones.Monitoring.Core
             }
         }
 
-        public static void AddPrometheusHttpListener(this MeterProviderBuilder builder, IConfiguration configuration, int maxCardinality = 2000)
+        public static void AddPrometheusHttpListener(this MeterProviderBuilder builder, string exposedEndpoint, int maxCardinality = 2000)
         {
-            var prometheusConnstr = configuration.GetConnectionString("Prometheus");
-            if (!String.IsNullOrWhiteSpace(prometheusConnstr))
+            if (!String.IsNullOrWhiteSpace(exposedEndpoint))
             {
                 builder.SetMaxMetricPointsPerMetricStream(maxCardinality);
-                builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { prometheusConnstr });
-                Console.WriteLine($"Exposing metrics at : {prometheusConnstr}");
+                builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { exposedEndpoint });
+                Console.WriteLine($"Exposing metrics at : {exposedEndpoint}");
             }
         }
     }
