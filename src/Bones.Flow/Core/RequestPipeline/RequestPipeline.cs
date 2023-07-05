@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Bones.Monitoring;
 
-using System.Diagnostics.Metrics;
 using System.Diagnostics;
 
 using static Bones.Flow.Core.Consts;
+using static Bones.Flow.MetricExtensions;
+
 
 namespace Bones.Flow.Core
 {
@@ -33,13 +34,12 @@ namespace Bones.Flow.Core
 
         public RequestPipeline(ILogger<RequestPipeline<TRequest>> logger,
             IMetricFactory metricFactory,
-            Meter meter,
             ITraceFactory traceFactory
         )
         {
             _traceFactory = traceFactory;
-            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, meter);
-            _middlewareHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_MIDDLEWARE_HISTOGRAM, meter);
+            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, METER, "ms", "Pipeline duration");;
+            _middlewareHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_MIDDLEWARE_HISTOGRAM, METER, "ms", "Middleware duration");
             _logger = logger;
         }
 

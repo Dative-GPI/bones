@@ -68,13 +68,13 @@ namespace Bones.Monitoring.Core
             }
         }
 
-        public static void AddPrometheusHttpListener(this MeterProviderBuilder builder, string exposedEndpoint, int maxCardinality = 2000)
+        public static void AddPrometheusHttpListener(this MeterProviderBuilder builder, string scrapingEndpoint, int maxCardinality = 2000)
         {
-            if (!String.IsNullOrWhiteSpace(exposedEndpoint))
+            if (!String.IsNullOrWhiteSpace(scrapingEndpoint))
             {
                 builder.SetMaxMetricPointsPerMetricStream(maxCardinality);
-                builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { exposedEndpoint });
-                Console.WriteLine($"Exposing metrics at : {exposedEndpoint}");
+                builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { scrapingEndpoint });
+                Console.WriteLine($"Exposing metrics at : {scrapingEndpoint}");
             }
         }
     }

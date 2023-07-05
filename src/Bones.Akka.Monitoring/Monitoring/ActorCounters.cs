@@ -31,7 +31,7 @@ namespace Bones.Akka.Monitoring
             _messageQueueCounter = meter.CreateObservableGauge<int>(AkkaMetricsNames.MAILBOX_GAUGE, 
                 () => new Measurement<int>(this._currentNumberOfMessages, _actorTypeTag, _actorPathTag), description: "a gauge that measures the queue length of the actor. Should be enabled");
             _unhandledMessagesCounter = meter.CreateCounter<int>(AkkaMetricsNames.UNHANDLED_MESSAGE_COUNTER, description: "counts the number of Unhandled messages by message type.");
-            _messagesLatencyHistogram = meter.CreateHistogram<long>(AkkaMetricsNames.MESSAGE_LATENCY_HISTOGRAM, description: "a timer that messages the latency for each message / actor type pair; uses the same end to end measurement that tracing does.");
+            _messagesLatencyHistogram = meter.CreateHistogram<long>(AkkaMetricsNames.MESSAGE_LATENCY_HISTOGRAM, unit: "ms", description: "a timer that messages the latency for each message / actor type pair; uses the same end to end measurement that tracing does.");
             // logsCounter = _akkaMeter.CreateCounter<int>("akka.logs", description: "counts the number of logs of each log level into a collection. Also collections the Exception types raised in the error logs");
             // deadLettersCounter = _akkaMeter.CreateCounter<int>("akka.messages.deadletters", description: "counts the number of DeadLetter messages by message type.");
         }

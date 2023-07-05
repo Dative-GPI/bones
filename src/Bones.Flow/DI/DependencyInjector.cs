@@ -20,7 +20,6 @@ namespace Bones.Flow
             services.AddScoped(typeof(IPipeline<,>), typeof(RequestResultPipeline<,>));
 
             services.AddMonitoring(BONES_FLOW_INSTRUMENTATION, configureMonitoringOptions);
-            services.AddSingleton(new Meter(BONES_FLOW_METER));
             
             return services;
         }

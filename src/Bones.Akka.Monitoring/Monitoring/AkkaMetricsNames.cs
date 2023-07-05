@@ -3,13 +3,13 @@ namespace Bones.Akka.Monitoring
     public static class AkkaMetricsNames
     {
         #region counter names
-        public const string CREATED_ACTOR_COUNTER = "akka.actor.created";
-        public const string RESTARTED_ACTOR_COUNTER = "akka.actor.restarted";
-        public const string STOPPED_ACTOR_COUNTER = "akka.actor.stopped";
-        public const string RECEIVED_MESSAGE_COUNTER = "akka.message.recv";
-        public const string UNHANDLED_MESSAGE_COUNTER = "akka.message.unhandled";
-        public const string MESSAGE_LATENCY_HISTOGRAM = "akka.message.latency";
-        public const string MAILBOX_GAUGE = "akka.mailbox";
+        public const string CREATED_ACTOR_COUNTER = "akka-actor-created";
+        public const string RESTARTED_ACTOR_COUNTER = "akka-actor-restarted";
+        public const string STOPPED_ACTOR_COUNTER = "akka-actor-stopped";
+        public const string RECEIVED_MESSAGE_COUNTER = "akka-message-recv";
+        public const string UNHANDLED_MESSAGE_COUNTER = "akka-message-unhandled";
+        public const string MESSAGE_LATENCY_HISTOGRAM = "akka-message-latency";
+        public const string MAILBOX_GAUGE = "akka-mailbox";
         #endregion
 
         #region counters tags

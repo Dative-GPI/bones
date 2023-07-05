@@ -13,7 +13,6 @@ using Demo.Flow.Console.Middlewares;
 
 using System.Diagnostics;
 using static Bones.Flow.Core.Consts;
-using System.Diagnostics.Metrics;
 
 namespace Demo.Flow.Console
 {
