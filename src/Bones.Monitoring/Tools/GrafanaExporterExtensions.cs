@@ -67,8 +67,13 @@ namespace Bones.Monitoring.Core
 
         public static void AddPrometheusHttpListener(this MeterProviderBuilder builder, IConfiguration configuration, int maxCardinality = 2000)
         {
-            builder.SetMaxMetricPointsPerMetricStream(maxCardinality);
-            builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { "http://localhost:9091/" });
+            var prometheusConnstr = configuration.GetConnectionString("Prometheus");
+            if (!String.IsNullOrWhiteSpace(prometheusConnstr))
+            {
+                builder.SetMaxMetricPointsPerMetricStream(maxCardinality);
+                builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { prometheusConnstr });
+                Console.WriteLine($"Exposing metrics at : {prometheusConnstr}");
+            }
         }
     }
 }
