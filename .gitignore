@@ -3,3 +3,4 @@ obj
 .vscode
 .DS_Store
 *.nupkg
+node_modules
