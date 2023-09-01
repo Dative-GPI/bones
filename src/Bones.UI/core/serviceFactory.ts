@@ -21,7 +21,7 @@ export class ServiceFactory {
 
     static createComplete<TInfos, TInfosDTO, TDetails, TDetailsDTO, TCreateDTO, TUpdateDTO, TFilterDTO>(
         entityName: string,
-        manyURL: string,
+        manyURL: string | (() => string),
         oneURL: (id: string) => string,
         entityDetails: new (dto: TDetailsDTO) => TDetails,
         entityInfos: new (dto: TInfosDTO) => TInfos,
@@ -36,11 +36,12 @@ export class ServiceFactory {
         ));
     }
 
-    addGetMany<TInfosDTO, TInfos, TFilter>(url: string, entity: new (dto: TInfosDTO) => TInfos)
+    addGetMany<TInfosDTO, TInfos, TFilter>(url: string | (() => string), entity: new (dto: TInfosDTO) => TInfos)
         : { getMany: (filter?: TFilter) => Promise<TInfos[]> } {
 
         const getMany = async (filter?: TFilter) => {
-            const response = await ServiceFactory.http.get(buildURL(url, filter));
+            const realUrl = typeof url === "string" ? url : url();
+            const response = await ServiceFactory.http.get(buildURL(realUrl, filter));
             const dtos: TInfosDTO[] = response.data;
 
             return dtos.map(dto => new entity(dto));
@@ -65,11 +66,12 @@ export class ServiceFactory {
         return { get };
     }
 
-    addCreate<TCreateDTO, TDetailsDTO, TDetails>(url: string, entity: new (dto: TDetailsDTO) => TDetails)
+    addCreate<TCreateDTO, TDetailsDTO, TDetails>(url: string | (() => string), entity: new (dto: TDetailsDTO) => TDetails)
         : { create: (dto: TCreateDTO) => Promise<TDetails> } {
 
         const create = async (dto: TCreateDTO) => {
-            const response = await ServiceFactory.http.post(url, dto);
+            const realUrl = typeof url === "string" ? url : url();
+            const response = await ServiceFactory.http.post(realUrl, dto);
             const result = new entity(response.data);
 
             if (this.notifyService)
