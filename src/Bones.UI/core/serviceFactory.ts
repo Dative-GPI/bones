@@ -125,16 +125,14 @@ export class ServiceFactory {
     }
 
 
+    build<T>(target: T): T;
     build<T, U>(target: T, source1: U): T & U;
     build<T, U, V>(target: T, source1: U, source2: V): T & U & V;
     build<T, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W
     build<T, U, V, W, X>(target: T, source1: U, source2: V, source3: W, source4: X): T & U & V & W & X
     build<T, U, V, W, X, Y>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y): T & U & V & W & X & Y
     build<T, U, V, W, X, Y, Z>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z
-    build<T>(target: T): T {
-        return {
-            ...target,
-            ...arguments
-        }
+    build() {
+        return Object.assign({}, ...arguments)
     }
 }
