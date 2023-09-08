@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Text.Json;
 
 namespace Bones.Monitoring.Core.Tracing
 {
@@ -23,6 +26,23 @@ namespace Bones.Monitoring.Core.Tracing
         {
             _activity?.Stop();
             _activity?.Dispose();
+        }
+
+        public void SetError(Exception ex, object data = null)
+        {
+            _activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            var tags = new ActivityTagsCollection(new Dictionary<string, object>
+            {
+                { "Type", ex.GetType().FullName },
+                { "Message", ex.Message },
+                { "StackTrace", ex.StackTrace },
+            });
+            if(data != null)
+            {
+                tags.Add("Data", JsonSerializer.Serialize(data));
+            }
+            var activityEvent = new ActivityEvent("Exception", DateTime.UtcNow, tags);
+            _activity?.AddEvent(activityEvent);
         }
 
         public void SetTag(string key, object value)

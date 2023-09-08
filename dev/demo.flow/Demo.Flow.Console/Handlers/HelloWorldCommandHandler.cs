@@ -12,6 +12,8 @@ namespace Demo.Flow.Console.Handlers
         {
             System.Console.WriteLine("BEFORE" + request.Message);
 
+            // throw new Exception("Middleware exception");
+
             await next();
 
             System.Console.WriteLine("AFTER" + request.Message);

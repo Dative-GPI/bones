@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+
+
 using Bones.Monitoring;
-
-using System.Diagnostics;
-
 using static Bones.Flow.Core.Consts;
 using static Bones.Flow.MetricExtensions;
-
 
 namespace Bones.Flow.Core
 {
@@ -38,7 +38,7 @@ namespace Bones.Flow.Core
         )
         {
             _traceFactory = traceFactory;
-            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, METER, "ms", "Pipeline duration");;
+            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, METER, "ms", "Pipeline duration");
             _middlewareHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_MIDDLEWARE_HISTOGRAM, METER, "ms", "Middleware duration");
             _logger = logger;
         }
@@ -102,12 +102,16 @@ namespace Bones.Flow.Core
                 {
                     await ExecuteMiddlewares(request, cancellationToken, next);
                 }
-                catch (System.Exception ex) when (!ex.Data.Contains(LOGGED))
+                catch (System.Exception ex)
                 {
+                    if (ex.Data.Contains(LOGGED))
+                    {
+                        ex.Data[LOGGED] = true;
+                    }
+                    _pipelineTrace.Dispose();
                     _logger.LogError(ex, "An error occured executing Pipeline<{TRequest}>", typeof(TRequest).Name);
                     await ExecuteFailureHandlers(request, ex, cancellationToken);
-                    ex.Data[LOGGED] = true;
-                    throw ex;
+                    throw;
                 }
 
                 if (beforeSuccess != null)
@@ -155,13 +159,18 @@ namespace Bones.Flow.Core
                 );
 
             }
-            catch (System.Exception ex) when (!ex.Data.Contains(LOGGED))
+            catch (System.Exception ex)
             {
-
+                if (!ex.Data.Contains(LOGGED))
+                {
+                    _logger.LogError(ex, "An error occured in middleware {middleware} with payload {payload}",
+                        middleware.GetType().Name,
+                        JsonSerializer.Serialize(request));
+                    ex.Data[LOGGED] = true;
+                    trace.SetError(ex, request);
+                }
                 trace.Dispose();
-                _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
-                ex.Data[LOGGED] = true;
-                throw ex;
+                throw;
             }
 
             timer.Stop();
