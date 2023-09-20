@@ -64,14 +64,7 @@ namespace Bones.Flow.Core
         {
             Contract.Assert(_configured, "Pipeline not configured");
 
-            await ExecutePipeline(request, cancellationToken,
-                beforeSuccess: commit ? Commit : (Func<Task>)null
-            );
-
-            if (commit)
-            {
-                await Commit();
-            }
+            await ExecutePipeline(request, cancellationToken, commit: commit);
         }
 
         async Task IMiddleware<TRequest>.HandleAsync(TRequest request, Func<Task> next, CancellationToken cancellationToken)
@@ -88,12 +81,22 @@ namespace Bones.Flow.Core
             {
                 using (var trace = _traceFactory.CreateCommitTrace(_pipelineTrace))
                 {
-                    await _unitOfWork.Commit();
+                    try
+                    {
+                        await _unitOfWork.Commit();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occured when committing the unit of work");
+                        trace.SetError(ex);
+                        trace.Dispose();
+                        throw;
+                    }
                 }
             }
         }
 
-        public async Task ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task> next = default, Func<Task> beforeSuccess = null)
+        public async Task ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task> next = default, bool commit = false)
         {
             using (_pipelineTrace = _traceFactory.CreatePipelineTrace<TRequest>())
             {
@@ -114,13 +117,17 @@ namespace Bones.Flow.Core
                     throw;
                 }
 
-                if (beforeSuccess != null)
+                if (commit)
                 {
-                    await beforeSuccess();
+                    await Commit();
                 }
 
-
                 await ExecuteSuccessHandlers(request, cancellationToken);
+
+                if(commit && _successHandlers.Any())
+                {
+                    await Commit();
+                }
 
                 timer.Stop();
                 _pipelineHistogram.Record<TRequest>(timer.ElapsedMilliseconds);
