@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Bones.Monitoring;
 using static Bones.Flow.Core.Consts;
 using static Bones.Flow.MetricExtensions;
+using Bones.Monitoring.Core;
 
 namespace Bones.Flow.Core
 {
@@ -30,17 +31,20 @@ namespace Bones.Flow.Core
         ILogger<RequestPipeline<TRequest>> _logger;
 
         IUnitOfWork _unitOfWork;
+        IRequestSerializer _requestSerializer;
         bool _configured;
 
         public RequestPipeline(ILogger<RequestPipeline<TRequest>> logger,
             IMetricFactory metricFactory,
-            ITraceFactory traceFactory
+            ITraceFactory traceFactory,
+            IRequestSerializer requestSerializer
         )
         {
             _traceFactory = traceFactory;
             _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, METER, "ms", "Pipeline duration");
             _middlewareHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_MIDDLEWARE_HISTOGRAM, METER, "ms", "Middleware duration");
             _logger = logger;
+            _requestSerializer = requestSerializer;
         }
 
         public void Configure(IEnumerable<IMiddleware<TRequest>> middlewares,
@@ -124,7 +128,7 @@ namespace Bones.Flow.Core
 
                 await ExecuteSuccessHandlers(request, cancellationToken);
 
-                if(commit && _successHandlers.Any())
+                if (commit && _successHandlers.Any())
                 {
                     await Commit();
                 }
@@ -170,11 +174,12 @@ namespace Bones.Flow.Core
             {
                 if (!ex.Data.Contains(LOGGED))
                 {
+                    var serializedRequest = _requestSerializer.Serialize(request);
                     _logger.LogError(ex, "An error occured in middleware {middleware} with payload {payload}",
                         middleware.GetType().Name,
-                        JsonSerializer.Serialize(request));
+                        serializedRequest);
                     ex.Data[LOGGED] = true;
-                    trace.SetError(ex, request);
+                    trace.SetError(ex, serializedRequest);
                 }
                 trace.Dispose();
                 throw;
@@ -232,5 +237,6 @@ namespace Bones.Flow.Core
                 _logger.LogError(ex, "An error occured when executing failure handler {handler}", handler.GetType().Name);
             }
         }
+
     }
 }

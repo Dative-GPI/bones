@@ -11,6 +11,6 @@ namespace Bones.Monitoring
         void Stop();
         void Start();
         void SetTag(string key, object value);
-        void SetError(Exception exception, object data = null);
+        void SetError(Exception exception, string data = null);
     }
 }

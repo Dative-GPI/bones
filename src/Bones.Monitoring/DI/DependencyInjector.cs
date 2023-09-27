@@ -20,6 +20,8 @@ namespace Bones.Monitoring
 
             services.AddSingleton<IMetricFactory, MetricFactory>();
 
+            services.AddScoped<IRequestSerializer, RequestSerializer>();
+
             #region Sockets
             services.AddTelemetryConsumer<SocketsEventsConsumer>();
             services.AddMetricsConsumer<SocketsMetricsConsumer>();

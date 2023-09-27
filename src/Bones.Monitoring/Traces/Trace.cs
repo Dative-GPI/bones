@@ -28,7 +28,7 @@ namespace Bones.Monitoring.Core.Tracing
             _activity?.Dispose();
         }
 
-        public void SetError(Exception ex, object data = null)
+        public void SetError(Exception ex, string data = null)
         {
             _activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             var tags = new ActivityTagsCollection(new Dictionary<string, object>
@@ -37,9 +37,9 @@ namespace Bones.Monitoring.Core.Tracing
                 { "Message", ex.Message },
                 { "StackTrace", ex.StackTrace },
             });
-            if(data != null)
+            if(!string.IsNullOrWhiteSpace(data))
             {
-                tags.Add("Data", JsonSerializer.Serialize(data));
+                tags.Add("Data", data);
             }
             var activityEvent = new ActivityEvent("Exception", DateTime.UtcNow, tags);
             _activity?.AddEvent(activityEvent);
