@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -13,10 +14,10 @@ namespace Bones.Monitoring.Core
 {
     public static class GrafanaExporterExtensions
     {
-        public static void AddLokiExporter(this LoggerConfiguration loggerConfiguration, 
-            string connectionString, 
-            string environment, 
-            string serviceName, 
+        public static void AddLokiExporter(this LoggerConfiguration loggerConfiguration,
+            string connectionString,
+            string environment,
+            string serviceName,
             string hostname)
         {
             if (!String.IsNullOrWhiteSpace(connectionString))
@@ -35,9 +36,9 @@ namespace Bones.Monitoring.Core
                             Password = lokiPassword
                         },
                         labels: new List<LokiLabel> {
-                            new LokiLabel() { Key = "Environment", Value = environment },
-                            new LokiLabel() { Key = "ServiceName", Value = serviceName },
-                            new LokiLabel() { Key = "Instance", Value = hostname }
+                            new LokiLabel() { Key = "service.namespace", Value = environment },
+                            new LokiLabel() { Key = "service.name", Value = serviceName },
+                            new LokiLabel() { Key = "service.instance.id", Value = hostname }
                         });
 
                 Console.WriteLine($"Sending logs to loki endpoint : {lokiUrl}");
@@ -46,7 +47,6 @@ namespace Bones.Monitoring.Core
 
         public static void AddTempoExporter(this TracerProviderBuilder builder, string connectionString)
         {
-            ;
             if (!String.IsNullOrWhiteSpace(connectionString))
             {
                 var tempoRegex = new Regex(@"(https?:\/\/[^?]+)(?:\?token=(.*))?");
@@ -75,6 +75,20 @@ namespace Bones.Monitoring.Core
                 builder.SetMaxMetricPointsPerMetricStream(maxCardinality);
                 builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { scrapingEndpoint });
                 Console.WriteLine($"Exposing metrics at : {scrapingEndpoint}");
+            }
+        }
+
+        public static void AddPrometheusExporter(this MeterProviderBuilder builder, string prometheusHost, string prometheusPath)
+        {
+            if (!String.IsNullOrWhiteSpace(prometheusHost))
+            {
+                var prometheusEndpoint = new Uri($"{prometheusHost}{prometheusPath}");
+                builder.AddOtlpExporter(opt =>
+                {
+                    opt.Endpoint = prometheusEndpoint;
+                    opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+                });
+                Console.WriteLine($"Sending metrics to : {prometheusEndpoint.ToString}");
             }
         }
     }
