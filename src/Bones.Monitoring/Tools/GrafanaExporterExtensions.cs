@@ -14,7 +14,7 @@ namespace Bones.Monitoring.Core
 {
     public static class GrafanaExporterExtensions
     {
-        public static void AddLokiExporter(this LoggerConfiguration loggerConfiguration,
+        public static LoggerConfiguration AddLokiExporter(this LoggerConfiguration loggerConfiguration,
             string connectionString,
             string environment,
             string serviceName,
@@ -36,16 +36,22 @@ namespace Bones.Monitoring.Core
                             Password = lokiPassword
                         },
                         labels: new List<LokiLabel> {
-                            new LokiLabel() { Key = "service.namespace", Value = environment },
-                            new LokiLabel() { Key = "service.name", Value = serviceName },
-                            new LokiLabel() { Key = "service.instance.id", Value = hostname }
+                            new LokiLabel() { Key = "service_namespace", Value = environment },
+                            new LokiLabel() { Key = "service_name", Value = serviceName },
+                            new LokiLabel() { Key = "service_instance_id", Value = hostname }
                         });
 
                 Console.WriteLine($"Sending logs to loki endpoint : {lokiUrl}");
-            };
+            }
+            else
+            {
+                Console.WriteLine($"No loki endpoint configured");
+            }
+
+            return loggerConfiguration;
         }
 
-        public static void AddTempoExporter(this TracerProviderBuilder builder, string connectionString)
+        public static TracerProviderBuilder AddTempoExporter(this TracerProviderBuilder builder, string connectionString)
         {
             if (!String.IsNullOrWhiteSpace(connectionString))
             {
@@ -66,9 +72,15 @@ namespace Bones.Monitoring.Core
                     Console.WriteLine($"Sending traces to tempo endpoint : {tempoUrl}");
                 }
             }
+            else
+            {
+                Console.WriteLine($"No tempo endpoint configured");
+            }
+
+            return builder;
         }
 
-        public static void AddPrometheusHttpListener(this MeterProviderBuilder builder, string scrapingEndpoint, int maxCardinality = 2000)
+        public static MeterProviderBuilder AddPrometheusHttpListener(this MeterProviderBuilder builder, string scrapingEndpoint, int maxCardinality = 2000)
         {
             if (!String.IsNullOrWhiteSpace(scrapingEndpoint))
             {
@@ -76,20 +88,30 @@ namespace Bones.Monitoring.Core
                 builder.AddPrometheusHttpListener(options => options.UriPrefixes = new string[] { scrapingEndpoint });
                 Console.WriteLine($"Exposing metrics at : {scrapingEndpoint}");
             }
+            else
+            {
+                Console.WriteLine($"No prometheus scraping endpoint configured");
+            }
+            return builder;
         }
 
-        public static void AddPrometheusExporter(this MeterProviderBuilder builder, string prometheusHost, string prometheusPath)
+        public static MeterProviderBuilder AddPrometheusExporter(this MeterProviderBuilder builder, string prometheusHost, string prometheusPath)
         {
             if (!String.IsNullOrWhiteSpace(prometheusHost))
             {
-                var prometheusEndpoint = new Uri($"{prometheusHost}{prometheusPath}");
+                var endpoint = new Uri($"{prometheusHost}{prometheusPath}");
                 builder.AddOtlpExporter(opt =>
                 {
-                    opt.Endpoint = prometheusEndpoint;
+                    opt.Endpoint = endpoint;
                     opt.Protocol = OtlpExportProtocol.HttpProtobuf;
                 });
-                Console.WriteLine($"Sending metrics to : {prometheusEndpoint.ToString}");
+                Console.WriteLine($"Sending metrics to : {endpoint}");
             }
+            else
+            {
+                Console.WriteLine($"No prometheus host configured");
+            }
+            return builder;
         }
     }
 }
