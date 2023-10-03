@@ -26,7 +26,6 @@ export class EventQueue {
     private subscriptionCounter: number;
     private messageCounter: number;
     private buffer: string[];
-    private
     private subscribers: EventQueueSubscriber[];
     private validator: ValidateFunction<WindowsMessage>;
 
@@ -34,6 +33,7 @@ export class EventQueue {
     private constructor() {
         this.subscriptionCounter = 0;
         this.subscribers = [];
+        this.messageCounter = 0;
 
         this.validator = new Ajv().compile(schema);
         this.buffer = [...Array(bufferSize)];

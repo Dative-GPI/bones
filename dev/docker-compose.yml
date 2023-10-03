@@ -7,6 +7,13 @@ services:
       dockerfile: dev/dockerfiles/tests-dotnet.dockerfile
     networks:
       - bones
+  
+  tests-ui:
+    build: 
+      context: ..
+      dockerfile: dev/dockerfiles/tests-ui.dockerfile
+    networks:
+      - bones
 
 networks:
   bones:

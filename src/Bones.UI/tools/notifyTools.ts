@@ -27,7 +27,7 @@ export function onEntityChanged<TDetails>(
     entity: Ref<TDetails | null>,
     identifier: (e1: TDetails) => any = e1 => (e1 as any).id): AllCallback<TDetails> {
 
-    const result: AllCallback<TDetails> = (ev: NotifyEvent, payload) => {
+    const result: AllCallback<TDetails> = (ev: NotifyEvent, payload: any) => {
         if (!entity.value) return;
         const id = identifier(entity.value);
 

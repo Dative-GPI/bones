@@ -7,7 +7,7 @@ import { AllCallback, INotifyService } from "../abstractions";
 export class ServiceFactory {
     static http: AxiosInstance = axios;
 
-    private notifyService: NotifyService<unknown> | null;
+    private notifyService: NotifyService<unknown> | null = null;
 
     private constructor(type?: string) {
         if (type) this.notifyService = new NotifyService(type);

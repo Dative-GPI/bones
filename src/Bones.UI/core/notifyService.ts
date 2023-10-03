@@ -5,25 +5,25 @@ import { AddOrUpdateEvent, AllCallback, AllEvent, DeleteEvent, INotifyService, N
 import { EventQueue } from "./eventQueue";
 
 export class NotifyService<TDetails> implements INotifyService<TDetails> {
-    private counter;
+    private counter: number = 0;
     private topic: string;
 
-    private subscribers: Subscriber<TDetails>[];
+    private subscribers: Subscriber<TDetails>[] = [];
 
     constructor(type: string) {
         this.topic = `entity.${type.toLowerCase()}`;
         EventQueue.instance.subscribe<EntityEvent<TDetails>>(this.topic, this.onEntityEvent.bind(this));
     }
 
-    private onEntityEvent(msg: EntityEvent<TDetails>) {
+    private onEntityEvent(_topic: string, payload: EntityEvent<TDetails>) {
         _(this.subscribers)
             .filter(
-                (s) =>
-                    (s.ev === msg.action || s.ev == "all")
+                (s: any) =>
+                    (s.ev === payload.action || s.ev == "all")
             )
-            .forEach((s) => {
+            .forEach((s: any) => {
                 try {
-                    s.callback(msg.action as never, msg.payload)
+                    s.callback(payload.action as never, payload.payload)
                 } catch (error) {
                     console.error(error);
                 }
@@ -46,7 +46,7 @@ export class NotifyService<TDetails> implements INotifyService<TDetails> {
     }
 
     public unsubscribe(id: number): void {
-        const index = _.findIndex(this.subscribers, (s) => s.id == id);
+        const index = _.findIndex(this.subscribers, (s: any) => s.id == id);
         if (index != -1) {
             this.subscribers.splice(index, 1);
         }

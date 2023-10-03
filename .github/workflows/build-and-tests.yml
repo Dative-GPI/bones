@@ -8,5 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Build and Run tests
+      - name: Build and Run dotnet tests
         run: docker-compose up --build tests
+      
+      - name: Build and Run tests ui
+        run: docker-compose up --build tests-ui
