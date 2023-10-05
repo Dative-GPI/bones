@@ -32,6 +32,6 @@ jobs:
           cd ${{ matrix.folder}}
           yarn
           yarn version --new-version ${{ github.ref_name }} --no-git-tag-version
-          yarn publish --access
+          yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
