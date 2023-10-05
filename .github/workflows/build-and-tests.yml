@@ -3,13 +3,20 @@ name: Build & Tests
 on: [push]
 
 jobs:
-  tests:
+  dotnet-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       
       - name: Build and Run dotnet tests
         run: docker-compose up --build tests
+  dotnet-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tests: [bones-ui-tests]
+    steps:
+      - uses: actions/checkout@v3
       
       - name: Build and Run tests ui
-        run: docker-compose up --build tests-ui
+        run: docker-compose run --build tests-ui ${{ matrix.tests }}
