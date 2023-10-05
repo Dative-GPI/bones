@@ -9,8 +9,8 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Build and Run dotnet tests
-        run: docker-compose up --build tests
-  dotnet-tests:
+        run: docker compose up --build tests
+  ui-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,4 +19,4 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Build and Run tests ui
-        run: docker-compose run --build tests-ui ${{ matrix.tests }}
+        run: docker compose run --build tests-ui ${{ matrix.tests }}
