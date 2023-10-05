@@ -10,7 +10,7 @@ jobs:
       
       - name: Build and Run dotnet tests
         run: docker-compose up --build tests
-  dotnet-tests:
+  ui-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
