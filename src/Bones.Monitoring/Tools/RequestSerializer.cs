@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Bones.Monitoring.Core
 {
-    public class RequestSerializer: IRequestSerializer
+    public class RequestSerializer : IRequestSerializer
     {
         public string Serialize(object request)
         {
@@ -17,7 +17,7 @@ namespace Bones.Monitoring.Core
             });
         }
     }
-    
+
     public class RequestJsonConverter : JsonConverter<object>
     {
         public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -35,7 +35,15 @@ namespace Bones.Monitoring.Core
                 try
                 {
                     var propValue = prop.GetValue(value);
-                    JsonSerializer.Serialize(writer, propValue, prop.PropertyType, options);
+                    
+                    // Serialize the property value to a string
+                    string serializedPropValue = JsonSerializer.Serialize(propValue, prop.PropertyType, options);
+
+                    // Write property name
+                    writer.WritePropertyName(prop.Name);
+
+                    // Use the string directly to write to the writer
+                    writer.WriteStringValue(serializedPropValue);
                 }
                 catch
                 {
@@ -45,6 +53,7 @@ namespace Bones.Monitoring.Core
             }
 
             writer.WriteEndObject();
+
         }
     }
 }

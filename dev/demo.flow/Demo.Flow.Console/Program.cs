@@ -33,7 +33,7 @@ namespace Demo.Flow.Console
                 // .AddSource(BONES_AKKA_MONITORING_INSTRUMENTATION)
                 .AddSource(BONES_FLOW_INSTRUMENTATION)
                 // .AddSource(SOURCE_NAME)
-                .AddConsoleExporter()
+                // .AddConsoleExporter()
                 .Build();
 
             IHost host = Host.CreateDefaultBuilder(args)
