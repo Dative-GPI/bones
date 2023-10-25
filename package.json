@@ -1,4 +1,5 @@
 {
+  "private": true,
   "workspaces": [
     "./src/Bones.UI",
     "./tests/Bones.UI.Tests"
