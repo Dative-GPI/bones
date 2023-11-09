@@ -94,7 +94,7 @@ namespace Bones.X509
                 var notBefore = DateTimeOffset.UtcNow.AddDays(-1);
                 if (notBefore < cert.NotBefore) notBefore = new DateTimeOffset(cert.NotBefore);
 
-                var notAfter = DateTimeOffset.UtcNow.AddYears(2);
+                var notAfter = DateTimeOffset.UtcNow.AddYears(year);
                 if (notAfter > cert.NotAfter) notAfter = new DateTimeOffset(cert.NotAfter);
 
                 req.CertificateExtensions.Add(

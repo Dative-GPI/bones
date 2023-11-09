@@ -26,7 +26,7 @@ namespace Demo.Flow.Console
             Sdk.CreateMeterProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
                 .AddMeter(BONES_FLOW_METER)
-                .AddConsoleExporter((exporterOptions, metricsOptions) => metricsOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000)
+                // .AddConsoleExporter((exporterOptions, metricsOptions) => metricsOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000)
                 .Build();
 
             Sdk.CreateTracerProviderBuilder()
@@ -79,7 +79,7 @@ namespace Demo.Flow.Console
                 .ConfigureLogging(logging =>
                 {
                     logging.SetMinimumLevel(LogLevel.Information);
-                    // logging.AddConsole();
+                    logging.AddConsole();
                 })
                 .Build();
 

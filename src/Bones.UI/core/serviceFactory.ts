@@ -7,7 +7,7 @@ import { AllCallback, INotifyService } from "../abstractions";
 export class ServiceFactory {
     static http: AxiosInstance = axios;
 
-    private notifyService: NotifyService<unknown> | null;
+    private notifyService: NotifyService<unknown> | null = null;
 
     private constructor(type?: string) {
         if (type) this.notifyService = new NotifyService(type);
@@ -41,6 +41,8 @@ export class ServiceFactory {
 
         const getMany = async (filter?: TFilter) => {
             const realUrl = typeof url === "string" ? url : url();
+            console.log("TESST");
+            console.log(buildURL(realUrl, filter));
             const response = await ServiceFactory.http.get(buildURL(realUrl, filter));
             const dtos: TInfosDTO[] = response.data;
 
@@ -121,7 +123,7 @@ export class ServiceFactory {
 
         const otherMethods: U = others ? others(notifyService) : {} as U;
 
-        return { subscribe, unsubscribe, ...otherMethods };
+        return { subscribe: subscribe.bind(notifyService), unsubscribe: unsubscribe.bind(notifyService), ...otherMethods };
     }
 
 

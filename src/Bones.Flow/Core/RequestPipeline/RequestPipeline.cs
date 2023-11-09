@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+
+
 using Bones.Monitoring;
-
-using System.Diagnostics;
-
 using static Bones.Flow.Core.Consts;
 using static Bones.Flow.MetricExtensions;
-
+using Bones.Monitoring.Core;
 
 namespace Bones.Flow.Core
 {
@@ -30,17 +31,20 @@ namespace Bones.Flow.Core
         ILogger<RequestPipeline<TRequest>> _logger;
 
         IUnitOfWork _unitOfWork;
+        IRequestSerializer _requestSerializer;
         bool _configured;
 
         public RequestPipeline(ILogger<RequestPipeline<TRequest>> logger,
             IMetricFactory metricFactory,
-            ITraceFactory traceFactory
+            ITraceFactory traceFactory,
+            IRequestSerializer requestSerializer
         )
         {
             _traceFactory = traceFactory;
-            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, METER, "ms", "Pipeline duration");;
+            _pipelineHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_PIPELINE_HISTOGRAM, METER, "ms", "Pipeline duration");
             _middlewareHistogram = metricFactory.GetHistogram<double>(BONES_FLOW_MIDDLEWARE_HISTOGRAM, METER, "ms", "Middleware duration");
             _logger = logger;
+            _requestSerializer = requestSerializer;
         }
 
         public void Configure(IEnumerable<IMiddleware<TRequest>> middlewares,
@@ -64,14 +68,7 @@ namespace Bones.Flow.Core
         {
             Contract.Assert(_configured, "Pipeline not configured");
 
-            await ExecutePipeline(request, cancellationToken,
-                beforeSuccess: commit ? Commit : (Func<Task>)null
-            );
-
-            if (commit)
-            {
-                await Commit();
-            }
+            await ExecutePipeline(request, cancellationToken, commit: commit);
         }
 
         async Task IMiddleware<TRequest>.HandleAsync(TRequest request, Func<Task> next, CancellationToken cancellationToken)
@@ -88,12 +85,22 @@ namespace Bones.Flow.Core
             {
                 using (var trace = _traceFactory.CreateCommitTrace(_pipelineTrace))
                 {
-                    await _unitOfWork.Commit();
+                    try
+                    {
+                        await _unitOfWork.Commit();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occured when committing the unit of work");
+                        trace.SetError(ex);
+                        trace.Dispose();
+                        throw;
+                    }
                 }
             }
         }
 
-        public async Task ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task> next = default, Func<Task> beforeSuccess = null)
+        public async Task ExecutePipeline(TRequest request, CancellationToken cancellationToken, Func<Task> next = default, bool commit = false)
         {
             using (_pipelineTrace = _traceFactory.CreatePipelineTrace<TRequest>())
             {
@@ -102,21 +109,29 @@ namespace Bones.Flow.Core
                 {
                     await ExecuteMiddlewares(request, cancellationToken, next);
                 }
-                catch (System.Exception ex) when (!ex.Data.Contains(LOGGED))
+                catch (System.Exception ex)
                 {
+                    if (ex.Data.Contains(LOGGED))
+                    {
+                        ex.Data[LOGGED] = true;
+                    }
+                    _pipelineTrace.Dispose();
                     _logger.LogError(ex, "An error occured executing Pipeline<{TRequest}>", typeof(TRequest).Name);
                     await ExecuteFailureHandlers(request, ex, cancellationToken);
-                    ex.Data[LOGGED] = true;
-                    throw ex;
+                    throw;
                 }
 
-                if (beforeSuccess != null)
+                if (commit)
                 {
-                    await beforeSuccess();
+                    await Commit();
                 }
-
 
                 await ExecuteSuccessHandlers(request, cancellationToken);
+
+                if (commit && _successHandlers.Any())
+                {
+                    await Commit();
+                }
 
                 timer.Stop();
                 _pipelineHistogram.Record<TRequest>(timer.ElapsedMilliseconds);
@@ -155,13 +170,19 @@ namespace Bones.Flow.Core
                 );
 
             }
-            catch (System.Exception ex) when (!ex.Data.Contains(LOGGED))
+            catch (System.Exception ex)
             {
-
+                if (!ex.Data.Contains(LOGGED))
+                {
+                    var serializedRequest = _requestSerializer.Serialize(request);
+                    _logger.LogError(ex, "An error occured in middleware {middleware} with payload {payload}",
+                        middleware.GetType().Name,
+                        serializedRequest);
+                    ex.Data[LOGGED] = true;
+                    trace.SetError(ex, serializedRequest);
+                }
                 trace.Dispose();
-                _logger.LogError(ex, "An error occured in middleware {middleware}", middleware.GetType().Name);
-                ex.Data[LOGGED] = true;
-                throw ex;
+                throw;
             }
 
             timer.Stop();
@@ -216,5 +237,6 @@ namespace Bones.Flow.Core
                 _logger.LogError(ex, "An error occured when executing failure handler {handler}", handler.GetType().Name);
             }
         }
+
     }
 }

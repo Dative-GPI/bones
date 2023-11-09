@@ -5,11 +5,12 @@
     "main": "index.ts",
     "author": "",
     "license": "ISC",
-    "peerDependencies": {
+    "dependencies": {
         "@types/lodash": "^4.14.197",
         "ajv": "^8.11.0",
         "ajv-dist": "^8.11.0",
         "axios": "^0.21.1",
-        "vue": "^3.2.0"
+        "vue": "^3.2.0",
+        "lodash": "^4.17.21"
     }
 }
