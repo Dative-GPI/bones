@@ -9,15 +9,18 @@ export const PermissionPlugin: Plugin<PermissionOptions> = {
 
         app.config.globalProperties.$pm = {
             some(...permissionCodes: string[]) {
-                return permissionCodes.some(code => options.permissionProvider.has(code));
+                return options.permissionProvider.some(permissionCodes);
             },
             every(...permissionCodes: string[]) {
-                return permissionCodes.every(code => options.permissionProvider.has(code));
+                return options.permissionProvider.every(permissionCodes);
+            },
+            has(permissionCode: string) {
+                return options.permissionProvider.has(permissionCode);
             }
         }
     }
 }
 
 export interface PermissionOptions {
-    permissionProvider: { has: (permissionCode: string) => boolean };
+    permissionProvider: { has: (permissionCode: string) => boolean, some: (permissionCodes: string[]) => boolean, every: (permissionCodes: string[]) => boolean };
 }

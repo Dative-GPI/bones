@@ -6,6 +6,7 @@ declare module 'vue' {
         $pm: {
             some(...permissionCodes: string[]): boolean;
             every(...permissionCodes: string[]): boolean;
+            has(permissionCode: string): boolean;
         };
     }
 }
