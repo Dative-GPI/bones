@@ -2,36 +2,34 @@ import axios, { AxiosInstance } from "axios";
 
 import { buildURL } from "../tools";
 import { NotifyService } from "./notifyService";
-import { AllCallback, INotifyService } from "../abstractions";
+import { AllCallback } from "../abstractions";
 
-export class ServiceFactory {
+export class ServiceFactory<TDetailsDTO, TDetails> {
     static http: AxiosInstance = axios;
 
-    private notifyService: NotifyService<unknown> | null = null;
+    private notifyService: NotifyService<TDetails>;
+    EntityDetails: new (dto: TDetailsDTO) => TDetails;
 
-    private constructor(type?: string) {
-        if (type) this.notifyService = new NotifyService(type);
+    constructor(type: string, entity: new (dto: TDetailsDTO) => TDetails) {
+        this.notifyService = new NotifyService<TDetails>(type);
+        this.EntityDetails = entity;
     }
 
-    static create<T>(type: string, factory: (f: ServiceFactory) => T): () => T {
-        const f = new ServiceFactory(type);
-
-        return () => factory(f);
+    create<T>(factory: (f: ServiceFactory<TDetailsDTO, TDetails>) => T): () => T {
+        return () => factory(this);
     }
 
-    static createComplete<TInfos, TInfosDTO, TDetails, TDetailsDTO, TCreateDTO, TUpdateDTO, TFilterDTO>(
-        entityName: string,
+    createComplete<TInfos, TInfosDTO, TCreateDTO, TUpdateDTO, TFilterDTO>(
         manyURL: string | (() => string),
         oneURL: (id: string) => string,
-        entityDetails: new (dto: TDetailsDTO) => TDetails,
         entityInfos: new (dto: TInfosDTO) => TInfos,
     ) {
-        return ServiceFactory.create(entityName, factory => factory.build(
+        return this.create(factory => factory.build(
             factory.addNotify<TDetails>(),
             factory.addGetMany<TInfosDTO, TInfos, TFilterDTO>(manyURL, entityInfos),
-            factory.addGet<TDetailsDTO, TDetails>(id => oneURL(id), entityDetails),
-            factory.addCreate<TCreateDTO, TDetailsDTO, TDetails>(manyURL, entityDetails),
-            factory.addUpdate<TUpdateDTO, TDetailsDTO, TDetails>(id => oneURL(id), entityDetails),
+            factory.addGet(id => oneURL(id)),
+            factory.addCreate<TCreateDTO>(manyURL),
+            factory.addUpdate<TUpdateDTO>(id => oneURL(id)),
             factory.addRemove(id => oneURL(id))
         ));
     }
@@ -53,14 +51,14 @@ export class ServiceFactory {
     }
 
 
-    addGet<TDetailsDTO, TDetails>(url: (id: string) => string, entity: new (dto: TDetailsDTO) => TDetails)
+    addGet(url: (id: string) => string)
         : { get: (id: string) => Promise<TDetails> } {
 
         const get = async (id: string) => {
             const response = await ServiceFactory.http.get(url(id));
             const dto: TDetailsDTO = response.data;
 
-            const result = new entity(dto);
+            const result = new this.EntityDetails(dto);
 
             return result;
         }
@@ -68,13 +66,13 @@ export class ServiceFactory {
         return { get };
     }
 
-    addCreate<TCreateDTO, TDetailsDTO, TDetails>(url: string | (() => string), entity: new (dto: TDetailsDTO) => TDetails)
+    addCreate<TCreateDTO>(url: string | (() => string))
         : { create: (dto: TCreateDTO) => Promise<TDetails> } {
 
         const create = async (dto: TCreateDTO) => {
             const realUrl = typeof url === "string" ? url : url();
             const response = await ServiceFactory.http.post(realUrl, dto);
-            const result = new entity(response.data);
+            const result = new this.EntityDetails(response.data);
 
             if (this.notifyService)
                 this.notifyService.notify("add", result);
@@ -85,12 +83,12 @@ export class ServiceFactory {
         return { create };
     }
 
-    addUpdate<TUpdateDTO, TDetailsDTO, TDetails>(url: (id: string) => string, entity: new (dto: TDetailsDTO) => TDetails)
+    addUpdate<TUpdateDTO>(url: (id: string) => string)
         : { update: (id: string, dto: TUpdateDTO) => Promise<TDetails> } {
 
         const update = async (id: string, dto: TUpdateDTO) => {
             const response = await ServiceFactory.http.post(url(id), dto);
-            const result = new entity(response.data);
+            const result = new this.EntityDetails(response.data);
 
             if (this.notifyService)
                 this.notifyService.notify("update", result);
@@ -114,10 +112,10 @@ export class ServiceFactory {
         return { remove };
     }
 
-    addNotify<TEntity, U = {}>(others?: (notifyService: NotifyService<TEntity>) => U): { subscribe: (event: "add" | "update" | "delete" | "all", callback: AllCallback<TEntity>) => number, unsubscribe: (id: number) => void } & U {
+    addNotify<U = {}>(others?: (notifyService: NotifyService<TDetails>) => U): { subscribe: (event: "add" | "update" | "delete" | "all", callback: AllCallback<TDetails>) => number, unsubscribe: (id: number) => void } & U {
         if (!this.notifyService) throw new Error("Create your service with a type if you want to use notify");
 
-        const notifyService = (this.notifyService as NotifyService<TEntity>)
+        const notifyService = this.notifyService
 
         const { subscribe, unsubscribe } = notifyService;
 

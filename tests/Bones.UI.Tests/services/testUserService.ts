@@ -1,14 +1,15 @@
 import { ServiceFactory, ComposableFactory } from '@dative-gpi/bones-ui';
-import { CreateTestUserDTO, TestUserDetails, UpdateTestUserDTO } from '../models/testUserDetails';
-import { TestUserFilter, TestUserInfos } from '../models/testUserInfos';
+import { CreateTestUserDTO, TestUserDetails, TestUserDetailsDTO, UpdateTestUserDTO } from '../models/testUserDetails';
+import { TestUserFilter, TestUserInfos, TestUserInfosDTO } from '../models/testUserInfos';
 
 export const TEST_USERS_URL = "/api/testUsers";
 export const TEST_USER_URL = (id: string) => `/api/testUsers/${id}`;
 
-const testUserServiceFactory = ServiceFactory.createComplete("testUser", TEST_USERS_URL, TEST_USER_URL, TestUserDetails, TestUserInfos);
+const testUserServiceFactory = new ServiceFactory<TestUserDetails, TestUserDetailsDTO>("test", TestUserDetails)
+    .createComplete<TestUserInfos, TestUserInfosDTO, CreateTestUserDTO, UpdateTestUserDTO, TestUserFilter>(TEST_USERS_URL, TEST_USER_URL, TestUserInfos);
 
-export const useTestUser = ComposableFactory.get<TestUserDetails>(testUserServiceFactory);
-export const useTestUsers = ComposableFactory.getMany<TestUserInfos, TestUserFilter>(testUserServiceFactory);
-export const useCreateTestUser = ComposableFactory.create<CreateTestUserDTO, TestUserDetails>(testUserServiceFactory);
-export const useUpdateTestUser = ComposableFactory.update<UpdateTestUserDTO, TestUserDetails>(testUserServiceFactory);
+export const useTestUser = ComposableFactory.get(testUserServiceFactory);
+export const useTestUsers = ComposableFactory.getMany(testUserServiceFactory);
+export const useCreateTestUser = ComposableFactory.create(testUserServiceFactory);
+export const useUpdateTestUser = ComposableFactory.update(testUserServiceFactory);
 export const useRemoveTestUser = ComposableFactory.remove(testUserServiceFactory);
