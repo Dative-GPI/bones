@@ -114,7 +114,7 @@ export class ServiceFactory {
         return { remove };
     }
 
-    addNotify<TEntity, U = {}>(others?: (notifyService: INotifyService<TEntity>) => U): { subscribe: (event: "add" | "update" | "delete" | "all", callback: AllCallback<TEntity>) => number, unsubscribe: (id: number) => void } & U {
+    addNotify<TEntity, U = {}>(others?: (notifyService: NotifyService<TEntity>) => U): { subscribe: (event: "add" | "update" | "delete" | "all", callback: AllCallback<TEntity>) => number, unsubscribe: (id: number) => void } & U {
         if (!this.notifyService) throw new Error("Create your service with a type if you want to use notify");
 
         const notifyService = (this.notifyService as NotifyService<TEntity>)
