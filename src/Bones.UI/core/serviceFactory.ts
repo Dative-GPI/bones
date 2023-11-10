@@ -25,7 +25,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         entityInfos: new (dto: TInfosDTO) => TInfos,
     ) {
         return this.create(factory => factory.build(
-            factory.addNotify<TDetails>(),
+            factory.addNotify(),
             factory.addGetMany<TInfosDTO, TInfos, TFilterDTO>(manyURL, entityInfos),
             factory.addGet(id => oneURL(id)),
             factory.addCreate<TCreateDTO>(manyURL),
