@@ -39,8 +39,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
 
         const getMany = async (filter?: TFilter) => {
             const realUrl = typeof url === "string" ? url : url();
-            console.log("TESST");
-            console.log(buildURL(realUrl, filter));
+            
             const response = await ServiceFactory.http.get(buildURL(realUrl, filter));
             const dtos: TInfosDTO[] = response.data;
 

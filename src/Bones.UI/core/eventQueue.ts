@@ -65,13 +65,17 @@ export class EventQueue {
             });
 
         if (window.top) {
+            this.messageCounter++;
+            const id = "remote_" + this.messageCounter;
+
             const message: WindowsMessage = {
-                id: _.uniqueId("remote_"),
+                id,
                 topic,
                 payload
             };
 
             this.buffer[this.messageCounter % bufferSize] = message.id;
+
             window.top.postMessage(JSON.stringify(message), "*");
         }
     }
