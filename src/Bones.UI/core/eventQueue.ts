@@ -29,7 +29,6 @@ export class EventQueue {
     private subscribers: EventQueueSubscriber[];
     private validator: ValidateFunction<WindowsMessage>;
 
-
     private constructor() {
         this.subscriptionCounter = 0;
         this.subscribers = [];
@@ -46,11 +45,11 @@ export class EventQueue {
     }
 
     public static get instance(): EventQueue {
-        if (!EventQueue._instance) {
-            EventQueue._instance = new EventQueue();
+        if (!window._bonesQueue) {
+            window._bonesQueue = new EventQueue();
         }
 
-        return EventQueue._instance;
+        return window._bonesQueue;
     }
 
     public publish(topic: string, payload: any): void {

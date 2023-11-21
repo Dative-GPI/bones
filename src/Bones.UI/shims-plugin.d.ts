@@ -10,3 +10,9 @@ declare module 'vue' {
         };
     }
 }
+
+declare global {
+    interface Window {
+      _bonesQueue: any;
+    }
+  }
