@@ -21,8 +21,6 @@ const schema: JSONSchemaType<WindowsMessage> = {
 const bufferSize = 100;
 
 export class EventQueue {
-    private static _instance: EventQueue;
-
     private subscriptionCounter: number;
     private messageCounter: number;
     private buffer: string[];
@@ -53,17 +51,10 @@ export class EventQueue {
     }
 
     public publish(topic: string, payload: any): void {
-        _(this.subscribers)
-            .filter((s) => s.topic === topic || s.topic === "*")
-            .forEach((s) => {
-                try {
-                    s.callback(topic, payload);
-                } catch (error) {
-                    console.error(error);
-                }
-            });
 
-        if (window.top) {
+        this.publishInternal(topic, payload);
+
+        if (window.top && window.top !== window.self) {
             this.messageCounter++;
             const id = "remote_" + this.messageCounter;
 
@@ -98,6 +89,18 @@ export class EventQueue {
         }
     }
 
+    private publishInternal(topic: string, payload: any) {
+        _(this.subscribers)
+            .filter((s) => s.topic === topic || s.topic === "*")
+            .forEach((s) => {
+                try {
+                    s.callback(topic, payload);
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+    }
+
     private onWindowsMessage(event: MessageEvent) {
         let data;
 
@@ -117,7 +120,7 @@ export class EventQueue {
             return;
         }
 
-        this.publish(data.topic, data.payload);
+        this.publishInternal(data.topic, data.payload);
     }
 }
 
