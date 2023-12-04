@@ -25,5 +25,5 @@ jobs:
       # Publishing with tag name as version
       - name: Publishing to NuGet 🚀
         run: |
-          cd src/${{ matrix.folder}}/bin/Debug
+          cd src/${{ matrix.folder}}/bin/Release
           dotnet nuget push ${{matrix.folder}}.${{ github.ref_name}}.nupkg -k ${{ secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
