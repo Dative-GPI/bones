@@ -13,3 +13,13 @@ export const useTestUsers = ComposableFactory.getMany(testUserServiceFactory);
 export const useCreateTestUser = ComposableFactory.create(testUserServiceFactory);
 export const useUpdateTestUser = ComposableFactory.update(testUserServiceFactory);
 export const useRemoveTestUser = ComposableFactory.remove(testUserServiceFactory);
+
+const testGet = new ServiceFactory<TestUserDetails, TestUserDetailsDTO>("test", TestUserDetails)
+    .create(f => f.build(
+        f.addGet(TEST_USER_URL),
+        f.addNotify()
+    ));
+
+const testUserGet = ComposableFactory.get(testGet);
+
+const { entity } = useTestUser();

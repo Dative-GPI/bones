@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios";
 
 import { buildURL } from "../tools";
 import { NotifyService } from "./notifyService";
-import { AllCallback } from "../abstractions";
+import { INotifyService } from "../abstractions";
 
 export class ServiceFactory<TDetailsDTO, TDetails> {
     static http: AxiosInstance = axios;
@@ -111,7 +111,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { remove };
     }
 
-    addNotify<U = {}>(others?: (notifyService: NotifyService<TDetails>) => U): { subscribe: (event: "add" | "update" | "delete" | "all", callback: AllCallback<TDetails>) => number, unsubscribe: (id: number) => void } & U {
+    addNotify<U = {}>(others?: (notifyService: NotifyService<TDetails>) => U): INotifyService<TDetails> & U {
         if (!this.notifyService) throw new Error("Create your service with a type if you want to use notify");
 
         const notifyService = this.notifyService

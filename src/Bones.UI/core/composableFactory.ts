@@ -1,4 +1,4 @@
-import { Ref, onUnmounted, readonly, ref } from "vue";
+import { Ref, onUnmounted, ref } from "vue";
 
 import { FilterFactory } from "./filterFactory";
 import { INotifyService } from "../abstractions";
@@ -25,13 +25,13 @@ export class ComposableFactory {
                 const subscriberId = service.subscribe("all", onEntityChanged(entity))
                 onUnmounted(() => service.unsubscribe(subscriberId));
 
-                return readonly(entity);
+                return entity;
             }
 
             return {
-                getting: readonly(getting),
+                getting: getting,
                 get,
-                entity: readonly(entity)
+                entity: entity
             }
         }
     }
@@ -58,13 +58,13 @@ export class ComposableFactory {
                 const subscriberId = service.subscribe("all", onCollectionChanged(entities, filterMethod))
                 onUnmounted(() => service.unsubscribe(subscriberId));
 
-                return readonly(entities);
+                return entities;
             }
 
             return {
-                fetching: readonly(fetching),
+                fetching: fetching,
                 getMany,
-                entities: readonly(entities)
+                entities: entities
             }
         }
     }
@@ -90,13 +90,13 @@ export class ComposableFactory {
                 const subscriberId = service.subscribe("all", onEntityChanged(created))
                 onUnmounted(() => service.unsubscribe(subscriberId));
 
-                return readonly(created as Ref<TDetails>);
+                return created as Ref<TDetails>;
             }
 
             return {
-                creating: readonly(creating),
+                creating: creating,
                 create,
-                created: readonly(created)
+                created: created
             }
         }
     }
@@ -120,13 +120,13 @@ export class ComposableFactory {
                 const subscriberId = service.subscribe("all", onEntityChanged(updated))
                 onUnmounted(() => service.unsubscribe(subscriberId));
 
-                return readonly(updated.value as Ref<TDetails>);
+                return updated.value as Ref<TDetails>;
             }
 
             return {
-                updating: readonly(updating),
+                updating: updating,
                 update,
-                updated: readonly(updated)
+                updated: updated
             }
         }
     }
@@ -148,7 +148,7 @@ export class ComposableFactory {
             }
 
             return {
-                removing: readonly(removing),
+                removing: removing,
                 remove
             }
         }
