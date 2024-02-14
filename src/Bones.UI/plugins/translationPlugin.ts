@@ -1,7 +1,7 @@
 import { Plugin } from "vue";
 
 export const TranslationPlugin: Plugin<TranslationOptions> = {
-    install: (app, options: ) => {
+    install: (app, options) => {
         if (!options || !options.translationsProvider) {
             console.warn("Translation won't work without translationProvider")
             return;
