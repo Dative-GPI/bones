@@ -3,4 +3,5 @@ obj
 .vscode
 .DS_Store
 *.nupkg
+*.sln
 node_modules

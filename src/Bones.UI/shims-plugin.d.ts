@@ -1,18 +1,17 @@
-import Vue from 'vue';
+import Vue from "vue";
 
-declare module 'vue' {
+declare module "vue" {
     interface ComponentCustomProperties {
-        $tr: (codeLabel: string, defaultLabel: string) => string;
+        $tr: (code: string, defaultLabel: string, ...parameters: string[]) => string;
         $pm: {
             some(...permissionCodes: string[]): boolean;
             every(...permissionCodes: string[]): boolean;
-            has(permissionCode: string): boolean;
         };
     }
 }
 
 declare global {
     interface Window {
-      _bonesQueue: any;
+        _bonesQueue: any;
     }
-  }
+}

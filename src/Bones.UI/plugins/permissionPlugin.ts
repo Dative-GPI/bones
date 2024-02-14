@@ -1,4 +1,4 @@
-import { Plugin } from 'vue'
+import { Plugin } from "vue";
 
 export const PermissionPlugin: Plugin<PermissionOptions> = {
     install: (app, options) => {
@@ -8,19 +8,12 @@ export const PermissionPlugin: Plugin<PermissionOptions> = {
         }
 
         app.config.globalProperties.$pm = {
-            some(...permissionCodes: string[]) {
-                return options.permissionProvider.some(permissionCodes);
-            },
-            every(...permissionCodes: string[]) {
-                return options.permissionProvider.every(permissionCodes);
-            },
-            has(permissionCode: string) {
-                return options.permissionProvider.has(permissionCode);
-            }
+            some: options.permissionsProvider.some,
+            every: options.permissionsProvider.every
         }
     }
 }
 
 export interface PermissionOptions {
-    permissionProvider: { has: (permissionCode: string) => boolean, some: (permissionCodes: string[]) => boolean, every: (permissionCodes: string[]) => boolean };
+    permissionsProvider: { some: (...permissionCodes: string[]) => boolean, every: (...permissionCodes: string[]) => boolean };
 }
