@@ -2,8 +2,8 @@ import { Plugin } from "vue";
 
 export const PermissionPlugin: Plugin<PermissionOptions> = {
     install: (app, options) => {
-        if (!options || !options.permissionProvider) {
-            console.warn("Permission won't work without permissionProvider")
+        if (!options || !options.permissionsProvider) {
+            console.warn("Permission won't work without permissionsProvider")
             return;
         }
 
