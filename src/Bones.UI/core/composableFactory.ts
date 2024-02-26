@@ -6,10 +6,15 @@ import { onCollectionChanged, onEntityChanged } from "../tools";
 
 export class ComposableFactory {
     public static get<TDetails>(factory: () => { get(id: string): Promise<TDetails> } & INotifyService<TDetails>) {
-
-        const service = factory();
-
         return () => {
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
             const getting = ref(false);
             const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
@@ -22,8 +27,7 @@ export class ComposableFactory {
                     getting.value = false;
                 }
 
-                const subscriberId = service.subscribe("all", onEntityChanged(entity))
-                onUnmounted(() => service.unsubscribe(subscriberId));
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity)));
 
                 return entity;
             }
@@ -37,10 +41,15 @@ export class ComposableFactory {
     }
 
     public static getMany<TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TInfos>) {
-
-        const service = factory();
-
         return () => {
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
             const fetching = ref(false);
             const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
 
@@ -55,8 +64,7 @@ export class ComposableFactory {
 
                 const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
 
-                const subscriberId = service.subscribe("all", onCollectionChanged(entities, filterMethod))
-                onUnmounted(() => service.unsubscribe(subscriberId));
+                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
 
                 return entities;
             }
@@ -71,10 +79,15 @@ export class ComposableFactory {
 
 
     public static create<TCreateDTO, TDetails>(factory: () => { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
-
-        const service = factory();
-
         return () => {
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
             const creating = ref(false);
             const created = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
@@ -87,8 +100,7 @@ export class ComposableFactory {
                     creating.value = false;
                 }
 
-                const subscriberId = service.subscribe("all", onEntityChanged(created))
-                onUnmounted(() => service.unsubscribe(subscriberId));
+                subscribersIds.push(service.subscribe("all", onEntityChanged(created)));
 
                 return created as Ref<TDetails>;
             }
@@ -102,9 +114,15 @@ export class ComposableFactory {
     }
 
     public static update<TUpdateDTO, TDetails>(factory: () => { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
-        const service = factory();
-
         return () => {
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
             const updating = ref(false);
             const updated = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
@@ -117,8 +135,7 @@ export class ComposableFactory {
                     updating.value = false;
                 }
 
-                const subscriberId = service.subscribe("all", onEntityChanged(updated))
-                onUnmounted(() => service.unsubscribe(subscriberId));
+                subscribersIds.push(service.subscribe("all", onEntityChanged(updated)));
 
                 return updated.value as Ref<TDetails>;
             }
@@ -132,9 +149,9 @@ export class ComposableFactory {
     }
 
     public static remove(factory: () => { remove(id: string): Promise<void> }) {
-        const service = factory();
-
         return () => {
+            const service = factory();
+
             const removing = ref(false);
 
             const remove = async (id: string) => {
