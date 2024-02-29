@@ -1,19 +1,14 @@
 import { Plugin } from "vue";
 
-export const PermissionPlugin: Plugin<PermissionOptions> = {
-    install: (app, options) => {
-        if (!options || !options.permissionsProvider) {
-            console.warn("Permission won't work without permissionsProvider")
-            return;
-        }
+import { usePermissions } from '../composables/usePermissions';
+
+export const PermissionPlugin: Plugin = {
+    install: (app) => {
+        const { some, every } = usePermissions();
 
         app.config.globalProperties.$pm = {
-            some: options.permissionsProvider.some,
-            every: options.permissionsProvider.every
+            some,
+            every
         }
     }
-}
-
-export interface PermissionOptions {
-    permissionsProvider: { some: (...permissionCodes: string[]) => boolean, every: (...permissionCodes: string[]) => boolean };
 }

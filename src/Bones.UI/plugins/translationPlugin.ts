@@ -1,16 +1,11 @@
 import { Plugin } from "vue";
 
-export const TranslationPlugin: Plugin<TranslationOptions> = {
-    install: (app, options) => {
-        if (!options || !options.translationsProvider) {
-            console.warn("Translation won't work without translationsProvider")
-            return;
-        }
+import { useTranslations } from '../composables';
 
-        app.config.globalProperties.$tr = options.translationsProvider.$tr;
+export const TranslationPlugin: Plugin = {
+    install: (app) => {
+        const { $tr } = useTranslations();
+
+        app.config.globalProperties.$tr = $tr;
     }
-}
-
-export interface TranslationOptions {
-    translationsProvider: { $tr: (code: string, defaultLabel: string, ...parameters: string[]) => string }
 }
