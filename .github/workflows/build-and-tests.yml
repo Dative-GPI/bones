@@ -1,6 +1,7 @@
 name: Build & Tests
 
-on: [push]
+on:
+  workflow_call:
 
 jobs:
   dotnet-tests:

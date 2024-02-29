@@ -1,9 +1,10 @@
 name: Publish Package to NPM
 
 on:
-  push:
-    tags:
-      - "*"
+  workflow_call:
+    secrets:
+      NPM_TOKEN:
+        required: true
 
 jobs:
   publish:

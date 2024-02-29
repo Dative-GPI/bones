@@ -1,8 +1,10 @@
 name: Publish Package to Nuget.org
+
 on:
-   push:
-    tags: 
-      - "*"
+  workflow_call:
+    secrets:
+      NUGET_API_KEY:
+        required: true
 
 jobs:
   publish:
