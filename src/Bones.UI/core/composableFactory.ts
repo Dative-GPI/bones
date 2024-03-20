@@ -40,7 +40,29 @@ export class ComposableFactory {
         }
     }
 
-    public static getMany<TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TInfos>) {
+    public static sync<TDetails extends TInfos, TInfos>(factory: () => INotifyService<TDetails>) {
+        return <TFilter>(entities: TInfos[], filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            const synceds = ref(entities.slice()) as Ref<TInfos[]>;
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
+
+            subscribersIds.push(service.subscribe("all", onCollectionChanged(synceds, filterMethod)));
+
+            return {
+                synceds
+            }
+        }
+    }
+
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>) {
         return () => {
             const service = factory();
             let subscribersIds: number[] = [];
@@ -53,7 +75,7 @@ export class ComposableFactory {
             const fetching = ref(false);
             const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
 
-            const getMany = async (filter?: TFilter, customFilter?: (el: TInfos) => boolean) => {
+            const getMany = async (filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
                 fetching.value = true;
                 try {
                     entities.value = await service.getMany(filter);
