@@ -25,6 +25,7 @@ export function onCollectionChanged<TInfos, TDetails extends TInfos>(
 
 export function onEntityChanged<TDetails>(
     entity: Ref<TDetails | null>,
+    onChanged?: (entity: TDetails) => void,
     identifier: (e1: TDetails) => any = e1 => (e1 as any).id): AllCallback<TDetails> {
 
     const result: AllCallback<TDetails> = (ev: NotifyEvent, payload: any) => {
@@ -34,6 +35,7 @@ export function onEntityChanged<TDetails>(
         if (ev === "add" || ev === "update") {
             if (id === identifier(payload)) {
                 entity.value = payload;
+                if (onChanged) onChanged(payload);
             }
         }
 

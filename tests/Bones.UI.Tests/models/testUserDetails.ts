@@ -1,12 +1,14 @@
 export class TestUserDetails {
     id: string;
     label: string;
+    childs: TestUserChildInfos[]
 
     constructor(dto: TestUserDetailsDTO) {
         this.id = dto.id;
         this.label = dto.label;
+        this.childs = [];
     }
-} 
+}
 
 export interface TestUserDetailsDTO {
     id: string;
@@ -19,4 +21,8 @@ export interface CreateTestUserDTO {
 
 export interface UpdateTestUserDTO {
     label: string;
+}
+
+export class TestUserChildInfos {
+
 }

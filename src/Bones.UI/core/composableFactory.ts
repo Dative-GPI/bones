@@ -5,7 +5,7 @@ import { INotifyService } from "../abstractions";
 import { onCollectionChanged, onEntityChanged } from "../tools";
 
 export class ComposableFactory {
-    public static get<TDetails>(factory: () => { get(id: string): Promise<TDetails> } & INotifyService<TDetails>) {
+    public static get<TDetails>(factory: () => { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, apply?: (entity: TDetails) => void) {
         return () => {
             const service = factory();
             let subscribersIds: number[] = [];
@@ -22,12 +22,13 @@ export class ComposableFactory {
                 getting.value = true;
                 try {
                     entity.value = await service.get(id);
+                    if (apply) apply(entity.value);
                 }
                 finally {
                     getting.value = false;
                 }
 
-                subscribersIds.push(service.subscribe("all", onEntityChanged(entity)));
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, apply)));
 
                 return entity;
             }
@@ -40,29 +41,7 @@ export class ComposableFactory {
         }
     }
 
-    public static sync<TDetails extends TInfos, TInfos>(factory: () => INotifyService<TDetails>) {
-        return <TFilter>(entities: TInfos[], filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
-            const service = factory();
-            let subscribersIds: number[] = [];
-
-            const synceds = ref(entities.slice()) as Ref<TInfos[]>;
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
-
-            subscribersIds.push(service.subscribe("all", onCollectionChanged(synceds, filterMethod)));
-
-            return {
-                synceds
-            }
-        }
-    }
-
-    public static getMany<TDetails extends TInfos, TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>) {
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, apply?: (entity: TInfos) => void) {
         return () => {
             const service = factory();
             let subscribersIds: number[] = [];
@@ -79,6 +58,11 @@ export class ComposableFactory {
                 fetching.value = true;
                 try {
                     entities.value = await service.getMany(filter);
+                    if (apply) {
+                        for (const entity of entities.value) {
+                            apply(entity);
+                        }
+                    }
                 }
                 finally {
                     fetching.value = false;
@@ -99,6 +83,32 @@ export class ComposableFactory {
         }
     }
 
+    public static sync<TDetails extends TInfos, TInfos>(factory: () => INotifyService<TDetails>) {
+        return () => {
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            const synceds = ref([]) as Ref<TInfos[]>;
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const sync = <TFilter>(entities: TInfos[], filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
+                synceds.value = entities;
+
+                const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
+
+                subscribersIds.push(service.subscribe("all", onCollectionChanged(synceds, filterMethod)));
+            }
+
+            return {
+                synceds,
+                sync
+            }
+        }
+    }
 
     public static create<TCreateDTO, TDetails>(factory: () => { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
         return () => {
