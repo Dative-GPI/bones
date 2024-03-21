@@ -5,8 +5,9 @@ import { INotifyService } from "../abstractions";
 import { onCollectionChanged, onEntityChanged } from "../tools";
 
 export class ComposableFactory {
-    public static get<TDetails>(factory: () => { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, apply?: (entity: TDetails) => void) {
+    public static get<TDetails>(factory: () => { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
         return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
             const service = factory();
             let subscribersIds: number[] = [];
 
@@ -41,8 +42,9 @@ export class ComposableFactory {
         }
     }
 
-    public static getMany<TDetails extends TInfos, TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, apply?: (entity: TInfos) => void) {
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entity: TInfos) => void) {
         return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
             const service = factory();
             let subscribersIds: number[] = [];
 
