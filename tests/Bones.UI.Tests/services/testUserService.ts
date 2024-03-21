@@ -10,9 +10,11 @@ const testUserServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDe
 
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
 
-export const useTestUser = ComposableFactory.get(testUserServiceFactory, (entity) => {
+export const useTestUser = ComposableFactory.get(testUserServiceFactory, () => {
     const { synceds, sync } = useTestUsersSync();
-    // sync(entity.childs);
+    return (entity) => {
+        // sync(entity.childs);
+    }
 });
 
 export const useTestUsers = ComposableFactory.getMany(testUserServiceFactory);
