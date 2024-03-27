@@ -65,10 +65,12 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { get };
     }
 
-    addFetch(url: string): { fetch: () => Promise<TDetails> } {
-        
+    addFetch(url: string | (() => string)): { fetch: () => Promise<TDetails> } {
+
         const fetch = async () => {
-            const response = await ServiceFactory.http.get(url);
+            const realUrl = typeof url === "string" ? url : url();
+
+            const response = await ServiceFactory.http.get(realUrl);
             const dto: TDetailsDTO = response.data;
 
             const result = new this.EntityDetails(dto);
