@@ -8,6 +8,14 @@ export const TEST_USER_URL = (id: string) => `/api/testUsers/${id}`;
 const testUserServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetails>("test", TestUserDetails)
     .createComplete<TestUserInfos, TestUserInfosDTO, CreateTestUserDTO, UpdateTestUserDTO, TestUserFilter>(TEST_USERS_URL, TEST_USER_URL, TestUserInfos);
 
+const testUserFetchServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetails>("test", TestUserDetails)
+    .create(f => f.build(
+        f.addNotify(),
+        f.addFetch(TEST_USERS_URL),
+    ));
+
+export const useTestUserFetch = ComposableFactory.fetch(testUserFetchServiceFactory);
+
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
 
 export const useTestUser = ComposableFactory.get(testUserServiceFactory, () => {

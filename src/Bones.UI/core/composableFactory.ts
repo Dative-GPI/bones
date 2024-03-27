@@ -85,6 +85,43 @@ export class ComposableFactory {
         }
     }
 
+    public static fetch<TDetails>(factory: () => { fetch(): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            const service = factory();
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const fetching = ref(false);
+            const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
+
+            const fetch = async () => {
+                fetching.value = true;
+                try {
+                    entity.value = await service.fetch();
+                    if (apply) apply(entity.value);
+                }
+                finally {
+                    fetching.value = false;
+                }
+
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, apply)));
+
+                return entity;
+            }
+
+            return {
+                fetching: fetching,
+                fetch,
+                entity: entity
+            }
+        }
+    }
+
     public static sync<TDetails extends TInfos, TInfos>(factory: () => INotifyService<TDetails>) {
         return () => {
             const service = factory();

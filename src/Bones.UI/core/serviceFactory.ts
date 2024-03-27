@@ -39,7 +39,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
 
         const getMany = async (filter?: TFilter) => {
             const realUrl = typeof url === "string" ? url : url();
-            
+
             const response = await ServiceFactory.http.get(buildURL(realUrl, filter));
             const dtos: TInfosDTO[] = response.data;
 
@@ -63,6 +63,20 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         }
 
         return { get };
+    }
+
+    addFetch(url: string): { fetch: () => Promise<TDetails> } {
+        
+        const fetch = async () => {
+            const response = await ServiceFactory.http.get(url);
+            const dto: TDetailsDTO = response.data;
+
+            const result = new this.EntityDetails(dto);
+
+            return result;
+        }
+
+        return { fetch };
     }
 
     addCreate<TCreateDTO>(url: string | (() => string))
