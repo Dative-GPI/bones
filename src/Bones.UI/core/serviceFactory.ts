@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 
 import { buildURL } from "../tools";
 import { NotifyService } from "./notifyService";
@@ -15,8 +15,8 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         this.EntityDetails = entity;
     }
 
-    create<T>(factory: (f: ServiceFactory<TDetailsDTO, TDetails>) => T): () => T {
-        return () => factory(this);
+    create<T>(factory: (f: ServiceFactory<TDetailsDTO, TDetails>) => T): T {
+        return factory(this);
     }
 
     createComplete<TInfos, TInfosDTO, TCreateDTO, TUpdateDTO, TFilterDTO>(
@@ -65,12 +65,10 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { get };
     }
 
-    addFetch(url: string | (() => string)): { fetch: () => Promise<TDetails> } {
+    addCustom<T extends string, TArgs extends any[]>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>): Record<T, (...args: TArgs) => Promise<TDetails>> {
 
-        const fetch = async () => {
-            const realUrl = typeof url === "string" ? url : url();
-
-            const response = await ServiceFactory.http.get(realUrl);
+        const fetch = async (...args: TArgs) => {
+            const response = await call(ServiceFactory.http, ...args);
             const dto: TDetailsDTO = response.data;
 
             const result = new this.EntityDetails(dto);
@@ -78,7 +76,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
             return result;
         }
 
-        return { fetch };
+        return { [name]: fetch } as Record<T, (...args: TArgs) => Promise<TDetails>>;
     }
 
     addCreate<TCreateDTO>(url: string | (() => string))

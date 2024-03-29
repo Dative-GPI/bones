@@ -8,13 +8,15 @@ export const TEST_USER_URL = (id: string) => `/api/testUsers/${id}`;
 const testUserServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetails>("test", TestUserDetails)
     .createComplete<TestUserInfos, TestUserInfosDTO, CreateTestUserDTO, UpdateTestUserDTO, TestUserFilter>(TEST_USERS_URL, TEST_USER_URL, TestUserInfos);
 
-const testUserFetchServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetails>("test", TestUserDetails)
+const AccountLoginFactory = new ServiceFactory<Boolean, Boolean>("account-login", Boolean)
     .create(f => f.build(
         f.addNotify(),
-        f.addFetch(TEST_USERS_URL),
+        f.addCustom("login", (axios, d: CreateTestUserDTO) => axios.post(TEST_USERS_URL, d)),
+        f.addCustom("logout", axios => axios.get(TEST_USERS_URL)),
     ));
 
-export const useTestUserFetch = ComposableFactory.fetch(testUserFetchServiceFactory);
+export const useLogin = ComposableFactory.custom(AccountLoginFactory, AccountLoginFactory.login);
+export const useLogout = ComposableFactory.custom(AccountLoginFactory, AccountLoginFactory.logout);
 
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
 

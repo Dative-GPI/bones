@@ -4,11 +4,12 @@ import { FilterFactory } from "./filterFactory";
 import { INotifyService } from "../abstractions";
 import { onCollectionChanged, onEntityChanged } from "../tools";
 
+type CFunc<TName extends string, TArgs, TResult> = Record<TName, (args: TArgs) => Promise<TResult>>
+
 export class ComposableFactory {
-    public static get<TDetails>(factory: () => { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
+    public static get<TDetails>(service: { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
-            const service = factory();
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -42,10 +43,9 @@ export class ComposableFactory {
         }
     }
 
-    public static getMany<TDetails extends TInfos, TInfos, TFilter>(factory: () => { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entity: TInfos) => void) {
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entity: TInfos) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
-            const service = factory();
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -85,10 +85,9 @@ export class ComposableFactory {
         }
     }
 
-    public static fetch<TDetails>(factory: () => { fetch(): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
+    public static custom<TDetails, TService, TArgs extends any[]>(service: TService & INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
-            const service = factory();
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -99,10 +98,10 @@ export class ComposableFactory {
             const fetching = ref(false);
             const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
-            const fetch = async () => {
+            const fetch = async (...args: TArgs) => {
                 fetching.value = true;
                 try {
-                    entity.value = await service.fetch();
+                    entity.value = await method(...args);
                     if (apply) apply(entity.value);
                 }
                 finally {
@@ -122,9 +121,8 @@ export class ComposableFactory {
         }
     }
 
-    public static sync<TDetails extends TInfos, TInfos>(factory: () => INotifyService<TDetails>) {
+    public static sync<TDetails extends TInfos, TInfos>(service: INotifyService<TDetails>) {
         return () => {
-            const service = factory();
             let subscribersIds: number[] = [];
 
             const synceds = ref([]) as Ref<TInfos[]>;
@@ -149,9 +147,8 @@ export class ComposableFactory {
         }
     }
 
-    public static create<TCreateDTO, TDetails>(factory: () => { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
+    public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
         return () => {
-            const service = factory();
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -184,9 +181,8 @@ export class ComposableFactory {
         }
     }
 
-    public static update<TUpdateDTO, TDetails>(factory: () => { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
+    public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
         return () => {
-            const service = factory();
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -219,10 +215,8 @@ export class ComposableFactory {
         }
     }
 
-    public static remove(factory: () => { remove(id: string): Promise<void> }) {
+    public static remove(service: { remove(id: string): Promise<void> }) {
         return () => {
-            const service = factory();
-
             const removing = ref(false);
 
             const remove = async (id: string) => {
