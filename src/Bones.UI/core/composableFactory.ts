@@ -150,8 +150,10 @@ export class ComposableFactory {
                 subscribersIds = [];
             });
 
-            const track = (entity: Ref<TDetails>) => {
-                subscribersIds.push(service.subscribe("all", onEntityChanged(entity)));
+            const track = (entity: Ref<TDetails>, onChanged?: ((entity: TDetails) => void), immediate: boolean = true) => {
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, onChanged)));
+
+                if (onChanged && immediate) onChanged(entity.value);
 
                 return entity;
             }
