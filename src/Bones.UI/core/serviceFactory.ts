@@ -145,13 +145,13 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     build<T, U, V, W, X>(target: T, source1: U, source2: V, source3: W, source4: X): T & U & V & W & X
     build<T, U, V, W, X, Y>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y): T & U & V & W & X & Y
     build<T, U, V, W, X, Y, Z>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z
-    build<T, U, V, W, X, Y, Z, Z1>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1
-    build<T, U, V, W, X, Y, Z, Z1, Z2>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2
-    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3
-    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4
-    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5
-    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5, Z6>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5 & Z6
-    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5, Z6, Z7>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5 & Z6 & Z7
+    build<T, U, V, W, X, Y, Z, Z1>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1 ): T & U & V & W & X & Y & Z & Z1
+    build<T, U, V, W, X, Y, Z, Z1, Z2>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2 ): T & U & V & W & X & Y & Z & Z1 & Z2
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3, source10: Z4): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3, source10: Z4, source11: Z5): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5, Z6>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3, source10: Z4, source11: Z5, source12: Z6): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5 & Z6
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5, Z6, Z7>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3, source10: Z4, source11: Z5, source12: Z6, source13: Z7): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5 & Z6 & Z7
     build() {
         return Object.assign({}, ...arguments)
     }
