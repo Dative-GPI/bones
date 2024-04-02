@@ -7,7 +7,7 @@ import { onCollectionChanged, onEntityChanged } from "../tools";
 type CFunc<TName extends string, TArgs, TResult> = Record<TName, (args: TArgs) => Promise<TResult>>
 
 export class ComposableFactory {
-    public static get<TDetails>(service: { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
+    public static get<TDetails>(service: { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
@@ -24,7 +24,7 @@ export class ComposableFactory {
                 getting.value = true;
                 try {
                     entity.value = await service.get(id);
-                    if (apply) apply(entity.value);
+                    if (apply) apply(entity as Ref<TDetails>);
                 }
                 finally {
                     getting.value = false;
@@ -43,7 +43,7 @@ export class ComposableFactory {
         }
     }
 
-    public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entity: TInfos) => void) {
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
@@ -60,11 +60,7 @@ export class ComposableFactory {
                 fetching.value = true;
                 try {
                     entities.value = await service.getMany(filter);
-                    if (apply) {
-                        for (const entity of entities.value) {
-                            apply(entity);
-                        }
-                    }
+                    if (apply) apply(entities)
                 }
                 finally {
                     fetching.value = false;
@@ -117,7 +113,6 @@ export class ComposableFactory {
         return () => {
             let subscribersIds: number[] = [];
 
-            const synceds = ref([]) as Ref<TInfos[]>;
 
             onUnmounted(() => {
                 subscribersIds.forEach(id => service.unsubscribe(id));
@@ -125,7 +120,7 @@ export class ComposableFactory {
             });
 
             const sync = <TFilter>(entities: TInfos[], filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
-                synceds.value = entities;
+                const synceds = ref(entities) as Ref<TInfos[]>;
 
                 const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
 
@@ -135,7 +130,30 @@ export class ComposableFactory {
             }
 
             return {
-                synceds,
+                sync
+            }
+        }
+    }
+
+    public static syncRef<TDetails extends TInfos, TInfos>(service: INotifyService<TDetails>) {
+        return () => {
+            let subscribersIds: number[] = [];
+
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const sync = <TFilter>(entities: Ref<TInfos[]>, filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
+                const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
+
+                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
+
+                return entities;
+            }
+
+            return {
                 sync
             }
         }
@@ -150,10 +168,10 @@ export class ComposableFactory {
                 subscribersIds = [];
             });
 
-            const track = (entity: Ref<TDetails>, onChanged?: ((entity: TDetails) => void), immediate: boolean = true) => {
-                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, onChanged)));
+            const track = (initialValue: TDetails, setter?: ((entity: TDetails) => void)) => {
+                const entity = ref(initialValue) as Ref<TDetails>;
 
-                if (onChanged && immediate) onChanged(entity.value);
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, (ref) => setter ? setter(ref.value) : null)));
 
                 return entity;
             }
@@ -164,8 +182,30 @@ export class ComposableFactory {
         }
     }
 
-    public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
+    public static trackRef<TDetails>(service: INotifyService<TDetails>) {
         return () => {
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const track = (entity: Ref<TDetails>, onChanged?: ((entity: Ref<TDetails>) => void)) => {
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, onChanged)));
+
+                return entity;
+            }
+
+            return {
+                track
+            }
+        }
+    }
+
+    public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -180,6 +220,7 @@ export class ComposableFactory {
                 creating.value = true;
                 try {
                     created.value = await service.create(payload);
+                    if (apply) apply(created as Ref<TDetails>);
                 }
                 finally {
                     creating.value = false;
@@ -198,8 +239,9 @@ export class ComposableFactory {
         }
     }
 
-    public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>) {
+    public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
         return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -214,6 +256,7 @@ export class ComposableFactory {
                 updating.value = true;
                 try {
                     updated.value = await service.update(id, payload);
+                    if (apply) apply(updated as Ref<TDetails>);
                 }
                 finally {
                     updating.value = false;
