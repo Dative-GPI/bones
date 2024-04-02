@@ -65,7 +65,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { get };
     }
 
-    addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult): Record<T, (...args: TArgs) => Promise<TResult>> {
+    static addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult): Record<T, (...args: TArgs) => Promise<TResult>> {
 
         const fetch = async (...args: TArgs) => {
             const response = await call(ServiceFactory.http, ...args);
