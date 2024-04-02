@@ -16,7 +16,7 @@ const AccountLoginFactory = new ServiceFactory<Boolean, Boolean>("account-login"
     ));
 
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
-export const useTestUserTrack = ComposableFactory.track(testUserServiceFactory);
+export const useTestUserTrack = ComposableFactory.trackRef(testUserServiceFactory);
 
 
 export const useLogin = ComposableFactory.custom(AccountLoginFactory.login, () => {
@@ -34,7 +34,7 @@ export const useLogout = ComposableFactory.custom(AccountLoginFactory.logout, ()
 });
 
 export const useTestUser = ComposableFactory.get(testUserServiceFactory, () => {
-    const { synceds, sync } = useTestUsersSync();
+    const { sync } = useTestUsersSync();
     return (entity) => {
         // sync(entity.childs);
     }
@@ -57,4 +57,4 @@ const { entities, fetching, getMany } = useTestUsers();
 const { created, create, creating } = useCreateTestUser();
 const { updated, update, updating } = useUpdateTestUser();
 const { remove, removing } = useRemoveTestUser();
-const { synceds, sync } = useTestUsersSync();
+const { sync } = useTestUsersSync();
