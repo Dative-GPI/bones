@@ -85,15 +85,9 @@ export class ComposableFactory {
         }
     }
 
-    public static custom<TDetails, TService, TArgs extends any[]>(service: TService & INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: TDetails) => void) {
+    public static custom<TDetails, TArgs extends any[]>(method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
 
             const fetching = ref(false);
             const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
@@ -102,13 +96,11 @@ export class ComposableFactory {
                 fetching.value = true;
                 try {
                     entity.value = await method(...args);
-                    if (apply) apply(entity.value);
+                    if (apply) apply(entity as Ref<TDetails>);
                 }
                 finally {
                     fetching.value = false;
                 }
-
-                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, apply)));
 
                 return entity;
             }
@@ -138,11 +130,34 @@ export class ComposableFactory {
                 const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
 
                 subscribersIds.push(service.subscribe("all", onCollectionChanged(synceds, filterMethod)));
+
+                return synceds;
             }
 
             return {
                 synceds,
                 sync
+            }
+        }
+    }
+
+    public static track<TDetails>(service: INotifyService<TDetails>) {
+        return () => {
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const track = (entity: Ref<TDetails>) => {
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity)));
+
+                return entity;
+            }
+
+            return {
+                track
             }
         }
     }

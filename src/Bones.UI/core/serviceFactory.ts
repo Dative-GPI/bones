@@ -65,18 +65,18 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { get };
     }
 
-    addCustom<T extends string, TArgs extends any[]>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>): Record<T, (...args: TArgs) => Promise<TDetails>> {
+    addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult): Record<T, (...args: TArgs) => Promise<TResult>> {
 
         const fetch = async (...args: TArgs) => {
             const response = await call(ServiceFactory.http, ...args);
-            const dto: TDetailsDTO = response.data;
+            const dto: TResultDTO = response.data;
 
-            const result = new this.EntityDetails(dto);
+            const result = mapper(dto);
 
             return result;
         }
 
-        return { [name]: fetch } as Record<T, (...args: TArgs) => Promise<TDetails>>;
+        return { [name]: fetch } as Record<T, (...args: TArgs) => Promise<TResult>>;
     }
 
     addCreate<TCreateDTO>(url: string | (() => string))
@@ -145,6 +145,13 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     build<T, U, V, W, X>(target: T, source1: U, source2: V, source3: W, source4: X): T & U & V & W & X
     build<T, U, V, W, X, Y>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y): T & U & V & W & X & Y
     build<T, U, V, W, X, Y, Z>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z
+    build<T, U, V, W, X, Y, Z, Z1>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1
+    build<T, U, V, W, X, Y, Z, Z1, Z2>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5, Z6>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5 & Z6
+    build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5, Z6, Z7>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5 & Z6 & Z7
     build() {
         return Object.assign({}, ...arguments)
     }

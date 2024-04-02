@@ -11,14 +11,27 @@ const testUserServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDe
 const AccountLoginFactory = new ServiceFactory<Boolean, Boolean>("account-login", Boolean)
     .create(f => f.build(
         f.addNotify(),
-        f.addCustom("login", (axios, d: CreateTestUserDTO) => axios.post(TEST_USERS_URL, d)),
-        f.addCustom("logout", axios => axios.get(TEST_USERS_URL)),
+        f.addCustom("login", (axios, d: CreateTestUserDTO) => axios.post(TEST_USERS_URL, d), (dto: TestUserDetailsDTO) => new Array(5).map(a => new TestUserDetails(dto))),
+        f.addCustom("logout", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
     ));
 
-export const useLogin = ComposableFactory.custom(AccountLoginFactory, AccountLoginFactory.login);
-export const useLogout = ComposableFactory.custom(AccountLoginFactory, AccountLoginFactory.logout);
-
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
+export const useTestUserTrack = ComposableFactory.track(testUserServiceFactory);
+
+
+export const useLogin = ComposableFactory.custom(AccountLoginFactory.login, () => {
+    const { sync } = useTestUsersSync();
+    return (entities) => {
+        sync(entities.value);
+    }
+});
+
+export const useLogout = ComposableFactory.custom(AccountLoginFactory.logout, () => {
+    const { track } = useTestUserTrack();
+    return (entity) => {
+        track(entity);
+    }
+});
 
 export const useTestUser = ComposableFactory.get(testUserServiceFactory, () => {
     const { synceds, sync } = useTestUsersSync();
