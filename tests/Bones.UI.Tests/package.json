@@ -1,10 +1,17 @@
 {
   "name": "bones-ui-tests",
   "devDependencies": {
+    "@dative-gpi/bones-ui": "1.0.0",
     "@types/jest": "^29.5.5",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "@types/lodash": "^4.14.197",
+    "ajv": "^8.11.0",
+    "ajv-dist": "^8.11.0",
+    "axios": "^1.7.2",
+    "vue": "^3.2.0",
+    "lodash": "^4.17.21"
   },
   "scripts": {
     "test": "jest"

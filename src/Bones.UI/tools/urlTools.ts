@@ -1,5 +1,5 @@
 import _ from "lodash";
-import axiosBuildURL from 'axios/lib/helpers/buildURL';
+import { buildURL as axiosBuildURL } from "./buildURL";
 
 function deepFlat(key: string, value: any): { key: string, value: any }[] {
     if ((typeof value !== 'object' || value === null || value instanceof Date)) {

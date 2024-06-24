@@ -1,11 +1,13 @@
 /**
  * @jest-environment jsdom
  */
+
 import *  as all from '@dative-gpi/bones-ui';
 import { ServiceFactory } from '@dative-gpi/bones-ui';
 import { useTestUser, useTestUsers, TEST_USERS_URL, TEST_USER_URL, useCreateTestUser, useUpdateTestUser, useRemoveTestUser } from '../services/testUserService';
 import MockAdapter from 'axios-mock-adapter';
-import buildURL from 'axios/lib/helpers/buildURL';
+
+import { buildURL } from '@dative-gpi/bones-ui/tools/buildURL';
 
 const mock = new MockAdapter(ServiceFactory.http);
 
