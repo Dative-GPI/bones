@@ -1,4 +1,4 @@
-import Vue from "vue";
+export {}
 
 declare module "vue" {
     interface ComponentCustomProperties {
