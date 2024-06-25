@@ -6,7 +6,6 @@
     "author": "",
     "license": "ISC",
     "sideEffects": false,
-    "types": "index.d.ts",
     "peerDependencies": {
         "@types/lodash": "^4.14.197",
         "ajv": "^8.11.0",
