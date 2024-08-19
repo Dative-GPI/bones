@@ -4,8 +4,6 @@ import { FilterFactory } from "./filterFactory";
 import { INotifyService } from "../abstractions";
 import { onCollectionChanged, onEntityChanged } from "../tools";
 
-type CFunc<TName extends string, TArgs, TResult> = Record<TName, (args: TArgs) => Promise<TResult>>
-
 export class ComposableFactory {
     public static get<TDetails>(service: { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
         return () => {
@@ -81,6 +79,99 @@ export class ComposableFactory {
         }
     }
 
+    public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const creating = ref(false);
+            const created = ref<TDetails | null>(null) as Ref<TDetails | null>;
+
+            const create = async (payload: TCreateDTO) => {
+                creating.value = true;
+                try {
+                    created.value = await service.create(payload);
+                    if (apply) apply(created as Ref<TDetails>);
+                }
+                finally {
+                    creating.value = false;
+                }
+
+                subscribersIds.push(service.subscribe("all", onEntityChanged(created)));
+
+                return created as Ref<TDetails>;
+            }
+
+            return {
+                creating: creating,
+                create,
+                created: created
+            }
+        }
+    }
+
+    public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const updating = ref(false);
+            const updated = ref<TDetails | null>(null) as Ref<TDetails | null>;
+
+            const update = async (id: string, payload: TUpdateDTO) => {
+                updating.value = true;
+                try {
+                    updated.value = await service.update(id, payload);
+                    if (apply) apply(updated as Ref<TDetails>);
+                }
+                finally {
+                    updating.value = false;
+                }
+
+                subscribersIds.push(service.subscribe("all", onEntityChanged(updated)));
+
+                return updated.value as Ref<TDetails>;
+            }
+
+            return {
+                updating: updating,
+                update,
+                updated: updated
+            }
+        }
+    }
+
+    public static remove(service: { remove(id: string): Promise<void> }) {
+        return () => {
+            const removing = ref(false);
+
+            const remove = async (id: string) => {
+                removing.value = true;
+                try {
+                    await service.remove(id);
+                }
+                finally {
+                    removing.value = false;
+                }
+            }
+
+            return {
+                removing: removing,
+                remove
+            }
+        }
+    }
+
     public static custom<TDetails, TArgs extends any[]>(method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
@@ -105,6 +196,174 @@ export class ComposableFactory {
                 fetching: fetching,
                 fetch,
                 entity: entity
+            }
+        }
+    }
+
+
+    public static customGet<TDetails, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const getting = ref(false);
+            const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
+
+            const get = async (...args: TArgs) => {
+                getting.value = true;
+                try {
+                    entity.value = await method(...args);
+                    if (apply) apply(entity as Ref<TDetails>);
+                }
+                finally {
+                    getting.value = false;
+                }
+
+                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, apply)));
+
+                return entity;
+            }
+
+            return {
+                getting: getting,
+                get,
+                entity: entity
+            }
+        }
+    }
+
+    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TInfos[]>,  applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const fetching = ref(false);
+            const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
+
+            const getMany = async ( customFilter?: (el: TDetails) => boolean, ...args: TArgs) => {
+                fetching.value = true;
+                try {
+                    entities.value = await method(...args);
+                    if (apply) apply(entities)
+                }
+                finally {
+                    fetching.value = false;
+                }
+
+                const filterMethod = customFilter || ((el: TInfos) => true);
+
+                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
+
+                return entities;
+            }
+
+            return {
+                fetching: fetching,
+                getMany,
+                entities: entities
+            }
+        }
+    }
+
+    public static customCreate<TDetails, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const creating = ref(false);
+            const created = ref<TDetails | null>(null) as Ref<TDetails | null>;
+
+            const create = async (...args: TArgs) => {
+                creating.value = true;
+                try {
+                    created.value = await method(...args);
+                    if (apply) apply(created as Ref<TDetails>);
+                }
+                finally {
+                    creating.value = false;
+                }
+
+                subscribersIds.push(service.subscribe("all", onEntityChanged(created)));
+
+                return created as Ref<TDetails>;
+            }
+
+            return {
+                creating: creating,
+                create,
+                created: created
+            }
+        }
+    }
+
+    public static customUpdate<TDetails, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const updating = ref(false);
+            const updated = ref<TDetails | null>(null) as Ref<TDetails | null>;
+
+            const update = async (...args: TArgs) => {
+                updating.value = true;
+                try {
+                    updated.value = await method(...args);
+                    if (apply) apply(updated as Ref<TDetails>);
+                }
+                finally {
+                    updating.value = false;
+                }
+
+                subscribersIds.push(service.subscribe("all", onEntityChanged(updated)));
+
+                return updated.value as Ref<TDetails>;
+            }
+
+            return {
+                updating: updating,
+                update,
+                updated: updated
+            }
+        }
+    }
+
+    public static customRemove<TArgs extends any[]>(method: (...args: TArgs) => Promise<void>) {
+        return () => {
+            const removing = ref(false);
+
+            const remove = async (...args: TArgs) => {
+                removing.value = true;
+                try {
+                    await method(...args);
+                }
+                finally {
+                    removing.value = false;
+                }
+            }
+
+            return {
+                removing: removing,
+                remove
             }
         }
     }
@@ -203,96 +462,4 @@ export class ComposableFactory {
         }
     }
 
-    public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const creating = ref(false);
-            const created = ref<TDetails | null>(null) as Ref<TDetails | null>;
-
-            const create = async (payload: TCreateDTO) => {
-                creating.value = true;
-                try {
-                    created.value = await service.create(payload);
-                    if (apply) apply(created as Ref<TDetails>);
-                }
-                finally {
-                    creating.value = false;
-                }
-
-                subscribersIds.push(service.subscribe("all", onEntityChanged(created)));
-
-                return created as Ref<TDetails>;
-            }
-
-            return {
-                creating: creating,
-                create,
-                created: created
-            }
-        }
-    }
-
-    public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const updating = ref(false);
-            const updated = ref<TDetails | null>(null) as Ref<TDetails | null>;
-
-            const update = async (id: string, payload: TUpdateDTO) => {
-                updating.value = true;
-                try {
-                    updated.value = await service.update(id, payload);
-                    if (apply) apply(updated as Ref<TDetails>);
-                }
-                finally {
-                    updating.value = false;
-                }
-
-                subscribersIds.push(service.subscribe("all", onEntityChanged(updated)));
-
-                return updated.value as Ref<TDetails>;
-            }
-
-            return {
-                updating: updating,
-                update,
-                updated: updated
-            }
-        }
-    }
-
-    public static remove(service: { remove(id: string): Promise<void> }) {
-        return () => {
-            const removing = ref(false);
-
-            const remove = async (id: string) => {
-                removing.value = true;
-                try {
-                    await service.remove(id);
-                }
-                finally {
-                    removing.value = false;
-                }
-            }
-
-            return {
-                removing: removing,
-                remove
-            }
-        }
-    }
 }

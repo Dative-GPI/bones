@@ -8,11 +8,13 @@ export const TEST_USER_URL = (id: string) => `/api/testUsers/${id}`;
 const testUserServiceFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetails>("test", TestUserDetails)
     .createComplete<TestUserInfos, TestUserInfosDTO, CreateTestUserDTO, UpdateTestUserDTO, TestUserFilter>(TEST_USERS_URL, TEST_USER_URL, TestUserInfos);
 
-const AccountLoginFactory = new ServiceFactory<Boolean, Boolean>("account-login", Boolean)
+const AccountLoginFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetails>("account-login", TestUserDetails)
     .create(f => f.build(
         f.addNotify(),
         ServiceFactory.addCustom("login", (axios, d: CreateTestUserDTO) => axios.post(TEST_USERS_URL, d), (dto: TestUserDetailsDTO) => new Array(5).map(a => new TestUserDetails(dto))),
         ServiceFactory.addCustom("logout", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
+        ServiceFactory.addCustom("current", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
+        ServiceFactory.addCustom("complexCurrent", (axios, p1: string, p2: number) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
     ));
 
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
@@ -39,6 +41,12 @@ export const useTestUser = ComposableFactory.get(testUserServiceFactory, () => {
         // sync(entity.childs);
     }
 });
+
+AccountLoginFactory.complexCurrent("p1", 1);
+AccountLoginFactory.current();
+
+export const useCurrentUser = ComposableFactory.customGet(AccountLoginFactory, AccountLoginFactory.current);
+export const useComplexCurrentUser = ComposableFactory.customGet(AccountLoginFactory, AccountLoginFactory.complexCurrent);
 
 export const useTestUsers = ComposableFactory.getMany(testUserServiceFactory);
 export const useCreateTestUser = ComposableFactory.create(testUserServiceFactory);
