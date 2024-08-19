@@ -6,170 +6,23 @@ import { onCollectionChanged, onEntityChanged } from "../tools";
 
 export class ComposableFactory {
     public static get<TDetails>(service: { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const getting = ref(false);
-            const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
-
-            const get = async (id: string) => {
-                getting.value = true;
-                try {
-                    entity.value = await service.get(id);
-                    if (apply) apply(entity as Ref<TDetails>);
-                }
-                finally {
-                    getting.value = false;
-                }
-
-                subscribersIds.push(service.subscribe("all", onEntityChanged(entity, apply)));
-
-                return entity;
-            }
-
-            return {
-                getting: getting,
-                get,
-                entity: entity
-            }
-        }
+        return ComposableFactory.customGet(service, service.get, applyFactory);
     }
 
     public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const fetching = ref(false);
-            const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
-
-            const getMany = async (filter?: TFilter, customFilter?: (el: TDetails) => boolean) => {
-                fetching.value = true;
-                try {
-                    entities.value = await service.getMany(filter);
-                    if (apply) apply(entities)
-                }
-                finally {
-                    fetching.value = false;
-                }
-
-                const filterMethod = customFilter || (filter ? FilterFactory.create(filter) : (el: TInfos) => true);
-
-                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
-
-                return entities;
-            }
-
-            return {
-                fetching: fetching,
-                getMany,
-                entities: entities
-            }
-        }
+        return ComposableFactory.customGetMany(service, service.getMany, applyFactory);
     }
 
     public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const creating = ref(false);
-            const created = ref<TDetails | null>(null) as Ref<TDetails | null>;
-
-            const create = async (payload: TCreateDTO) => {
-                creating.value = true;
-                try {
-                    created.value = await service.create(payload);
-                    if (apply) apply(created as Ref<TDetails>);
-                }
-                finally {
-                    creating.value = false;
-                }
-
-                subscribersIds.push(service.subscribe("all", onEntityChanged(created)));
-
-                return created as Ref<TDetails>;
-            }
-
-            return {
-                creating: creating,
-                create,
-                created: created
-            }
-        }
+        return ComposableFactory.customCreate(service, service.create, applyFactory);
     }
 
     public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const updating = ref(false);
-            const updated = ref<TDetails | null>(null) as Ref<TDetails | null>;
-
-            const update = async (id: string, payload: TUpdateDTO) => {
-                updating.value = true;
-                try {
-                    updated.value = await service.update(id, payload);
-                    if (apply) apply(updated as Ref<TDetails>);
-                }
-                finally {
-                    updating.value = false;
-                }
-
-                subscribersIds.push(service.subscribe("all", onEntityChanged(updated)));
-
-                return updated.value as Ref<TDetails>;
-            }
-
-            return {
-                updating: updating,
-                update,
-                updated: updated
-            }
-        }
+        return ComposableFactory.customUpdate(service, service.update, applyFactory);
     }
 
     public static remove(service: { remove(id: string): Promise<void> }) {
-        return () => {
-            const removing = ref(false);
-
-            const remove = async (id: string) => {
-                removing.value = true;
-                try {
-                    await service.remove(id);
-                }
-                finally {
-                    removing.value = false;
-                }
-            }
-
-            return {
-                removing: removing,
-                remove
-            }
-        }
+        return ComposableFactory.customRemove(service.remove);
     }
 
     public static custom<TDetails, TArgs extends any[]>(method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
@@ -237,7 +90,11 @@ export class ComposableFactory {
         }
     }
 
-    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TInfos[]>,  applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
+    /**
+     * Warning : read the code before using this method, the first argument in the method is used to create a filter
+     * The last argument passed to the getMany composable can be a custom filter function that will override the default filter
+     * */
+    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TInfos[]>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
@@ -250,17 +107,26 @@ export class ComposableFactory {
             const fetching = ref(false);
             const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
 
-            const getMany = async ( customFilter?: (el: TDetails) => boolean, ...args: TArgs) => {
+            const getMany = async (...args: [...TArgs, ((el: TDetails) => boolean)?]) => {
                 fetching.value = true;
+
+                let customFilter: ((el: TDetails) => boolean) | undefined = undefined
+
+                if(args.length > 1 && typeof args[args.length - 1] === 'function') {
+                    customFilter = args.pop();
+                }
+
+                let actualArgs = args as unknown as TArgs;
+
                 try {
-                    entities.value = await method(...args);
+                    entities.value = await method(...actualArgs);
                     if (apply) apply(entities)
                 }
                 finally {
                     fetching.value = false;
                 }
 
-                const filterMethod = customFilter || ((el: TInfos) => true);
+                const filterMethod = customFilter || (actualArgs.length > 0 ? FilterFactory.create(actualArgs[0]) : () => true);
 
                 subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
 
@@ -461,5 +327,4 @@ export class ComposableFactory {
             }
         }
     }
-
 }

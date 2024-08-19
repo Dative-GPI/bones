@@ -15,6 +15,7 @@ const AccountLoginFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetai
         ServiceFactory.addCustom("logout", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
         ServiceFactory.addCustom("current", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
         ServiceFactory.addCustom("complexCurrent", (axios, p1: string, p2: number) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
+        ServiceFactory.addCustom("complexGetMany", (axios, p1: string, p2: number) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new Array(5).map(a => new TestUserDetails(dto))),
     ));
 
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
@@ -42,11 +43,12 @@ export const useTestUser = ComposableFactory.get(testUserServiceFactory, () => {
     }
 });
 
-AccountLoginFactory.complexCurrent("p1", 1);
-AccountLoginFactory.current();
+// AccountLoginFactory.complexCurrent("p1", 1);
+// AccountLoginFactory.current();
 
 export const useCurrentUser = ComposableFactory.customGet(AccountLoginFactory, AccountLoginFactory.current);
 export const useComplexCurrentUser = ComposableFactory.customGet(AccountLoginFactory, AccountLoginFactory.complexCurrent);
+export const useComplexGetMany = ComposableFactory.customGetMany(AccountLoginFactory, AccountLoginFactory.complexGetMany);
 
 export const useTestUsers = ComposableFactory.getMany(testUserServiceFactory);
 export const useCreateTestUser = ComposableFactory.create(testUserServiceFactory);
