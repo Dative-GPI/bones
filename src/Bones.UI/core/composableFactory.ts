@@ -112,7 +112,7 @@ export class ComposableFactory {
 
                 let customFilter: ((el: TDetails) => boolean) | undefined = undefined
 
-                if(args.length > 1 && typeof args[args.length - 1] === 'function') {
+                if (args.length > 1 && typeof args[args.length - 1] === 'function') {
                     customFilter = args.pop();
                 }
 
@@ -129,6 +129,16 @@ export class ComposableFactory {
                 const filterMethod = customFilter || (actualArgs.length > 0 ? FilterFactory.create(actualArgs[0]) : () => true);
 
                 subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
+                subscribersIds.push(service.subscribe("reset", async () => {
+                    fetching.value = true;
+                    try {
+                        entities.value = await method(...actualArgs);
+                        if (apply) apply(entities)
+                    }
+                    finally {
+                        fetching.value = false;
+                    }
+                }));
 
                 return entities;
             }

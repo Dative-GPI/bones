@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-import { AddOrUpdateEvent, AllCallback, AllEvent, DeleteEvent, INotifyService, NotifyEvent } from "../abstractions";
+import { AddOrUpdateEvent, AllCallback, AllEvent, DeleteEvent, INotifyService, NotifyEvent, ResetEvent } from "../abstractions";
 
 import { EventQueue } from "./eventQueue";
 
@@ -23,7 +23,7 @@ export class NotifyService<TDetails> implements INotifyService<TDetails> {
             )
             .forEach((s: any) => {
                 try {
-                    s.callback(payload.action as never, payload.payload)
+                    s.callback(payload.action as never, 'payload' in payload ? payload.payload : undefined);
                 } catch (error) {
                     console.error(error);
                 }
@@ -31,7 +31,7 @@ export class NotifyService<TDetails> implements INotifyService<TDetails> {
     }
 
     public subscribe(
-        event: "add" | "update" | "delete" | "all",
+        event: AllEvent,
         callback: AllCallback<TDetails>
     ): number {
         this.counter++;
@@ -54,6 +54,7 @@ export class NotifyService<TDetails> implements INotifyService<TDetails> {
 
     public notify(event: AddOrUpdateEvent, payload: TDetails): void;
     public notify(event: DeleteEvent, payload: any): void;
+    public notify(event: ResetEvent, payload?: any): void;
 
     notify(event: NotifyEvent, payload: any) {
         const data: EntityEvent<TDetails> = {
@@ -71,7 +72,7 @@ interface Subscriber<TDetails> {
     callback: AllCallback<TDetails>;
 }
 
-export type EntityEvent<TDetails> = AddEntityEvent<TDetails> | UpdateEntityEvent<TDetails> | DeleteEntityEvent;
+export type EntityEvent<TDetails> = AddEntityEvent<TDetails> | UpdateEntityEvent<TDetails> | DeleteEntityEvent | ResetEntityEvent;
 
 interface AddEntityEvent<TDetails> {
     action: "add";
@@ -86,4 +87,8 @@ interface UpdateEntityEvent<TDetails> {
 interface DeleteEntityEvent {
     action: "delete";
     payload: any;
+}
+
+interface ResetEntityEvent {
+    action: "reset";
 }
