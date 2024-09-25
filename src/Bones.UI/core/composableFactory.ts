@@ -106,9 +106,11 @@ export class ComposableFactory {
 
             const fetching = ref(false);
             const _entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
-            let _filter: (el: TInfos) => boolean = () => true;
+            let _filter: Ref<(el: TInfos) => boolean> = ref(() => true);
 
-            const entities = computed(() => _entities.value.filter(e => _filter(e)));
+            const entities = computed(() => {
+                return _entities.value.filter(e => _filter.value(e))
+            });
 
             const getMany = async (...args: [...TArgs, ((el: TInfos) => boolean)?]) => {
                 fetching.value = true;
@@ -130,7 +132,7 @@ export class ComposableFactory {
                 }
 
                 const filterMethod = customFilter || (actualArgs.length > 0 ? FilterFactory.create(actualArgs[0]) : () => true);
-                _filter = filterMethod
+                _filter.value = filterMethod
 
                 subscribersIds.push(service.subscribe("all", onCollectionChanged(_entities)));
                 subscribersIds.push(service.subscribe("reset", async () => {
