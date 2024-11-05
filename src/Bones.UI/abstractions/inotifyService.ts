@@ -16,3 +16,5 @@ export type AddOrUpdateCallback<TDetails> = (ev: AddOrUpdateEvent, payload: TDet
 export type DeleteCallback = (ev: DeleteEvent, id: any) => void;
 export type ResetCallback = (ev: ResetEvent) => void;
 export type AllCallback<TDetails> = AddOrUpdateCallback<TDetails> | DeleteCallback | ResetCallback;
+
+export type SubscribeCall<TDetails> = [AddOrUpdateEvent, AddOrUpdateCallback<TDetails>] | [DeleteEvent, DeleteCallback] | [ResetEvent, ResetCallback] | [AllEvent, AllCallback<TDetails>];
