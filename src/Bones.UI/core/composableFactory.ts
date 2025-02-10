@@ -5,24 +5,43 @@ import { INotifyService } from "../abstractions";
 import { onCollectionChanged, onEntityChanged } from "../tools";
 
 export class ComposableFactory {
-    public static get<TDetails>(service: { get(id: string): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return ComposableFactory.customGet(service, service.get, applyFactory);
+    public static get<TDetails>(
+        service: { get(id: string, cancellationToken?: AbortController): Promise<TDetails> } & INotifyService<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void,
+        allowCancellation: boolean = true
+    ) {
+        return ComposableFactory.customGet(service, service.get, applyFactory, allowCancellation);
     }
 
-    public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
-        return ComposableFactory.customGetMany(service, service.getMany, applyFactory);
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(
+        service: { getMany(filter?: TFilter, cancellationToken?: AbortController): Promise<TInfos[]> } & INotifyService<TDetails>,
+        applyFactory?: () => (entities: Ref<TInfos[]>) => void,
+        allowCancellation: boolean = true
+    ) {
+        return ComposableFactory.customGetMany(service, service.getMany, applyFactory, allowCancellation);
     }
 
-    public static create<TCreateDTO, TDetails>(service: { create(payload: TCreateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return ComposableFactory.customCreate(service, service.create, applyFactory);
+    public static create<TCreateDTO, TDetails>(
+        service: { create(payload: TCreateDTO, cancellationToken?: AbortController): Promise<TDetails> } & INotifyService<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void,
+        allowCancellation: boolean = true
+    ) {
+        return ComposableFactory.customCreate(service, service.create, applyFactory, allowCancellation);
     }
 
-    public static update<TUpdateDTO, TDetails>(service: { update(id: string, payload: TUpdateDTO): Promise<TDetails> } & INotifyService<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
-        return ComposableFactory.customUpdate(service, service.update, applyFactory);
+    public static update<TUpdateDTO, TDetails>(
+        service: { update(id: string, payload: TUpdateDTO, cancellationToken?: AbortController): Promise<TDetails> } & INotifyService<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void,
+        allowCancellation: boolean = true
+    ) {
+        return ComposableFactory.customUpdate(service, service.update, applyFactory, allowCancellation);
     }
 
-    public static remove(service: { remove(id: string): Promise<void> }) {
-        return ComposableFactory.customRemove(service.remove);
+    public static remove(
+        service: { remove(id: string, cancellationToken?: AbortController): Promise<void> },
+        allowCancellation: boolean = true
+    ) {
+        return ComposableFactory.customRemove(service.remove, allowCancellation);
     }
 
     public static subscribe<TDetails>(service: INotifyService<TDetails>) {
@@ -46,7 +65,10 @@ export class ComposableFactory {
         }
     }
 
-    public static custom<TDetails, TArgs extends any[]>(method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+    public static custom<TDetails, TArgs extends any[]>(
+        method: (...args: TArgs) => Promise<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void
+    ) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
 
@@ -74,8 +96,91 @@ export class ComposableFactory {
         }
     }
 
+    /**
+     * Warning : read the code before using this method, the first argument in the method is used to create a filter
+     * The last argument passed to the getMany composable can be a custom filter function that will override the default filter
+     * */
+    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(
+        service: INotifyService<TDetails>,
+        method: (...args: [...TArgs, AbortController]) => Promise<TInfos[]>,
+        applyFactory?: () => (entities: Ref<TInfos[]>) => void,
+        allowCancellation: boolean = true
+    ) {
+        return () => {
+            const apply = applyFactory ? applyFactory() : () => { };
+            let subscribersIds: number[] = [];
 
-    public static customGet<TDetails, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const fetching = ref(false);
+            const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
+
+            let cancellationToken: AbortController | null = null;
+
+            const getMany = async (...args: [...TArgs, ((el: TDetails) => boolean)?]) => {
+                if (cancellationToken && allowCancellation) {
+                    cancellationToken.abort();
+                    cancellationToken = null;
+                }
+                fetching.value = true;
+
+                let customFilter: ((el: TDetails) => boolean) | undefined = undefined
+
+                if (args.length > 1 && typeof args[args.length - 1] === 'function') {
+                    customFilter = args.pop();
+                }
+
+                let actualArgs = args as unknown as TArgs;
+
+                try {
+                    cancellationToken = new AbortController();
+                    entities.value = await method(...actualArgs, cancellationToken);
+                    if (apply) apply(entities)
+                }
+                finally {
+                    fetching.value = false;
+                }
+
+                const filterMethod = customFilter || (actualArgs.length > 0 ? FilterFactory.create(actualArgs[0]) : () => true);
+
+                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
+                subscribersIds.push(service.subscribe("reset", async () => {
+                    if (cancellationToken && allowCancellation) {
+                        cancellationToken.abort();
+                        cancellationToken = null;
+                    }
+                    fetching.value = true;
+                    try {
+                        cancellationToken = new AbortController();
+                        entities.value = await method(...actualArgs, cancellationToken);
+                        if (apply) apply(entities)
+                    }
+                    finally {
+                        fetching.value = false;
+                    }
+                }));
+
+                return entities;
+            }
+
+            return {
+                fetching: fetching,
+                getMany,
+                entities: entities,
+                cancellationToken
+            }
+        }
+    }
+
+    public static customGet<TDetails, TArgs extends any[]>(
+        service: INotifyService<TDetails>,
+        method: (...args: [...TArgs, AbortController]) => Promise<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void,
+        allowCancellation: boolean = true
+    ) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
@@ -88,10 +193,17 @@ export class ComposableFactory {
             const getting = ref(false);
             const entity = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
+            let cancellationToken: AbortController | null = null;
+
             const get = async (...args: TArgs) => {
+                if (cancellationToken && allowCancellation) {
+                    cancellationToken.abort();
+                    cancellationToken = null;
+                }
                 getting.value = true;
                 try {
-                    entity.value = await method(...args);
+                    cancellationToken = new AbortController();
+                    entity.value = await method(...args, cancellationToken);
                     if (apply) apply(entity as Ref<TDetails>);
                 }
                 finally {
@@ -106,73 +218,18 @@ export class ComposableFactory {
             return {
                 getting: getting,
                 get,
-                entity: entity
+                entity: entity,
+                cancellationToken
             }
         }
     }
 
-    /**
-     * Warning : read the code before using this method, the first argument in the method is used to create a filter
-     * The last argument passed to the getMany composable can be a custom filter function that will override the default filter
-     * */
-    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TInfos[]>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
-        return () => {
-            const apply = applyFactory ? applyFactory() : () => { };
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const fetching = ref(false);
-            const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
-
-            const getMany = async (...args: [...TArgs, ((el: TDetails) => boolean)?]) => {
-                fetching.value = true;
-
-                let customFilter: ((el: TDetails) => boolean) | undefined = undefined
-
-                if (args.length > 1 && typeof args[args.length - 1] === 'function') {
-                    customFilter = args.pop();
-                }
-
-                let actualArgs = args as unknown as TArgs;
-
-                try {
-                    entities.value = await method(...actualArgs);
-                    if (apply) apply(entities)
-                }
-                finally {
-                    fetching.value = false;
-                }
-
-                const filterMethod = customFilter || (actualArgs.length > 0 ? FilterFactory.create(actualArgs[0]) : () => true);
-
-                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
-                subscribersIds.push(service.subscribe("reset", async () => {
-                    fetching.value = true;
-                    try {
-                        entities.value = await method(...actualArgs);
-                        if (apply) apply(entities)
-                    }
-                    finally {
-                        fetching.value = false;
-                    }
-                }));
-
-                return entities;
-            }
-
-            return {
-                fetching: fetching,
-                getMany,
-                entities: entities
-            }
-        }
-    }
-
-    public static customCreate<TDetails, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+    public static customCreate<TDetails, TArgs extends any[]>(
+        service: INotifyService<TDetails>,
+        method: (...args: [...TArgs, AbortController]) => Promise<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void,
+        allowCancellation: boolean = true
+    ) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
@@ -185,10 +242,17 @@ export class ComposableFactory {
             const creating = ref(false);
             const created = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
+            let cancellationToken: AbortController | null = null;
+
             const create = async (...args: TArgs) => {
+                if (cancellationToken && allowCancellation) {
+                    cancellationToken.abort();
+                    cancellationToken = null;
+                }
                 creating.value = true;
                 try {
-                    created.value = await method(...args);
+                    cancellationToken = new AbortController();
+                    created.value = await method(...args, cancellationToken);
                     if (apply) apply(created as Ref<TDetails>);
                 }
                 finally {
@@ -203,12 +267,18 @@ export class ComposableFactory {
             return {
                 creating: creating,
                 create,
-                created: created
+                created: created,
+                cancellationToken
             }
         }
     }
 
-    public static customUpdate<TDetails, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
+    public static customUpdate<TDetails, TArgs extends any[]>(
+        service: INotifyService<TDetails>,
+        method: (...args: [...TArgs, AbortController]) => Promise<TDetails>,
+        applyFactory?: () => (entity: Ref<TDetails>) => void,
+        allowCancellation: boolean = true
+    ) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
             let subscribersIds: number[] = [];
@@ -221,10 +291,17 @@ export class ComposableFactory {
             const updating = ref(false);
             const updated = ref<TDetails | null>(null) as Ref<TDetails | null>;
 
+            let cancellationToken: AbortController | null = null;
+
             const update = async (...args: TArgs) => {
+                if (cancellationToken && allowCancellation) {
+                    cancellationToken.abort();
+                    cancellationToken = null;
+                }
                 updating.value = true;
                 try {
-                    updated.value = await method(...args);
+                    cancellationToken = new AbortController();
+                    updated.value = await method(...args, cancellationToken);
                     if (apply) apply(updated as Ref<TDetails>);
                 }
                 finally {
@@ -239,19 +316,30 @@ export class ComposableFactory {
             return {
                 updating: updating,
                 update,
-                updated: updated
+                updated: updated,
+                cancellationToken
             }
         }
     }
 
-    public static customRemove<TArgs extends any[]>(method: (...args: TArgs) => Promise<void>) {
+    public static customRemove<TArgs extends any[]>(
+        method: (...args: [...TArgs, AbortController]) => Promise<void>,
+        allowCancellation: boolean = true
+    ) {
         return () => {
             const removing = ref(false);
 
+            let cancellationToken: AbortController | null = null;
+
             const remove = async (...args: TArgs) => {
+                if (cancellationToken && allowCancellation) {
+                    cancellationToken.abort();
+                    cancellationToken = null;
+                }
                 removing.value = true;
                 try {
-                    await method(...args);
+                    cancellationToken = new AbortController();
+                    await method(...args, cancellationToken);
                 }
                 finally {
                     removing.value = false;
@@ -260,7 +348,8 @@ export class ComposableFactory {
 
             return {
                 removing: removing,
-                remove
+                remove,
+                cancellationToken
             }
         }
     }

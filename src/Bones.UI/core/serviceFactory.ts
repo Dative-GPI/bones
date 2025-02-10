@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import { buildURL } from "../tools";
 import { NotifyService } from "./notifyService";
@@ -34,38 +34,11 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         ));
     }
 
-    addGetMany<TInfosDTO, TInfos, TFilter>(url: string | (() => string), entity: new (dto: TInfosDTO) => TInfos)
-        : { getMany: (filter?: TFilter) => Promise<TInfos[]> } {
-
-        const getMany = async (filter?: TFilter) => {
-            const realUrl = typeof url === "string" ? url : url();
-
-            const response = await ServiceFactory.http.get(buildURL(realUrl, filter));
-            const dtos: TInfosDTO[] = response.data;
-
-            return dtos.map(dto => new entity(dto));
-        }
-
-        return { getMany };
-    }
-
-
-    addGet(url: (id: string) => string)
-        : { get: (id: string) => Promise<TDetails> } {
-
-        const get = async (id: string) => {
-            const response = await ServiceFactory.http.get(url(id));
-            const dto: TDetailsDTO = response.data;
-
-            const result = new this.EntityDetails(dto);
-
-            return result;
-        }
-
-        return { get };
-    }
-
-    static addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult): Record<T, (...args: TArgs) => Promise<TResult>> {
+    static addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(
+        name: T,
+        call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>,
+        mapper: (dto: TResultDTO) => TResult
+    ): Record<T, (...args: TArgs) => Promise<TResult>> {
 
         const fetch = async (...args: TArgs) => {
             const response = await call(ServiceFactory.http, ...args);
@@ -79,12 +52,42 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { [name]: fetch } as Record<T, (...args: TArgs) => Promise<TResult>>;
     }
 
-    addCreate<TCreateDTO>(url: string | (() => string))
-        : { create: (dto: TCreateDTO) => Promise<TDetails> } {
+    addGetMany<TInfosDTO, TInfos, TFilter>(url: string | (() => string), entity: new (dto: TInfosDTO) => TInfos)
+        : { getMany: (filter?: TFilter, cancellationToken?: AbortController) => Promise<TInfos[]> } {
 
-        const create = async (dto: TCreateDTO) => {
+        const getMany = async (filter?: TFilter, cancellationToken?: AbortController) => {
             const realUrl = typeof url === "string" ? url : url();
-            const response = await ServiceFactory.http.post(realUrl, dto);
+            const response = await ServiceFactory.http.get(buildURL(realUrl, filter), { signal: cancellationToken?.signal } as AxiosRequestConfig);
+            const dtos: TInfosDTO[] = response.data;
+
+            return dtos.map(dto => new entity(dto));
+        }
+
+        return { getMany };
+    }
+
+
+    addGet(url: (id: string) => string)
+        : { get: (id: string, cancellationToken?: AbortController) => Promise<TDetails> } {
+
+        const get = async (id: string, cancellationToken?: AbortController) => {
+            const response = await ServiceFactory.http.get(url(id), { signal: cancellationToken?.signal } as AxiosRequestConfig);
+            const dto: TDetailsDTO = response.data;
+
+            const result = new this.EntityDetails(dto);
+
+            return result;
+        }
+
+        return { get };
+    }
+
+    addCreate<TCreateDTO>(url: string | (() => string))
+        : { create: (dto: TCreateDTO, cancellationToken?: AbortController) => Promise<TDetails> } {
+
+        const create = async (dto: TCreateDTO, cancellationToken?: AbortController) => {
+            const realUrl = typeof url === "string" ? url : url();
+            const response = await ServiceFactory.http.post(realUrl, dto, { signal: cancellationToken?.signal } as AxiosRequestConfig);
             const result = new this.EntityDetails(response.data);
 
             if (this.notifyService)
@@ -97,10 +100,10 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     }
 
     addUpdate<TUpdateDTO>(url: (id: string) => string)
-        : { update: (id: string, dto: TUpdateDTO) => Promise<TDetails> } {
+        : { update: (id: string, dto: TUpdateDTO, cancellationToken?: AbortController) => Promise<TDetails> } {
 
-        const update = async (id: string, dto: TUpdateDTO) => {
-            const response = await ServiceFactory.http.post(url(id), dto);
+        const update = async (id: string, dto: TUpdateDTO, cancellationToken?: AbortController) => {
+            const response = await ServiceFactory.http.post(url(id), dto, { signal: cancellationToken?.signal } as AxiosRequestConfig);
             const result = new this.EntityDetails(response.data);
 
             if (this.notifyService)
@@ -113,10 +116,10 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     }
 
     addRemove(url: (id: string) => string)
-        : { remove: (id: string) => Promise<void> } {
+        : { remove: (id: string, cancellationToken?: AbortController) => Promise<void> } {
 
-        const remove = async (id: string) => {
-            await ServiceFactory.http.delete(url(id));
+        const remove = async (id: string, cancellationToken?: AbortController) => {
+            await ServiceFactory.http.delete(url(id), { signal: cancellationToken?.signal } as AxiosRequestConfig);
 
             if (this.notifyService)
                 this.notifyService.notify("delete", id);
@@ -136,7 +139,6 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
 
         return { subscribe: subscribe.bind(notifyService), unsubscribe: unsubscribe.bind(notifyService), ...otherMethods };
     }
-
 
     build<T>(target: T): T;
     build<T, U>(target: T, source1: U): T & U;
