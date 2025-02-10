@@ -16,8 +16,8 @@ const AccountLoginFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetai
         ServiceFactory.addCustom("login", (axios, d: CreateTestUserDTO) => axios.post(TEST_USERS_URL, d), (dto: TestUserDetailsDTO) => new Array(5).map(a => new TestUserDetails(dto))),
         ServiceFactory.addCustom("logout", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
         ServiceFactory.addCustom("current", axios => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
-        ServiceFactory.addCustom("complexCurrent", (axios, p1: string, p2: number) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
-        ServiceFactory.addCustom("complexGetMany", (axios, p1: string, p2: number) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new Array(5).map(a => new TestUserDetails(dto))),
+        ServiceFactory.addCustom("complexCurrent", (axios, p1: string, p2: number, _?: AbortController) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new TestUserDetails(dto)),
+        ServiceFactory.addCustom("complexGetMany", (axios, p1: string, p2: number, _?: AbortController) => axios.get(TEST_USERS_URL), (dto: TestUserDetailsDTO) => new Array(5).map(a => new TestUserDetails(dto))),
     ));
 
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
