@@ -126,6 +126,7 @@ export class ComposableFactory {
                     cancellationToken = null;
                 }
                 fetching.value = true;
+                cancellationToken = new AbortController();
 
                 let customFilter: ((el: TDetails) => boolean) | undefined = undefined
 
@@ -136,7 +137,6 @@ export class ComposableFactory {
                 let actualArgs = args as unknown as TArgs;
 
                 try {
-                    cancellationToken = new AbortController();
                     entities.value = await method(...actualArgs, cancellationToken);
                     if (apply) apply(entities)
                 }
@@ -154,8 +154,8 @@ export class ComposableFactory {
                         cancellationToken = null;
                     }
                     fetching.value = true;
+                    cancellationToken = new AbortController();
                     try {
-                        cancellationToken = new AbortController();
                         entities.value = await method(...actualArgs, cancellationToken);
                         if (apply) apply(entities)
                     }
@@ -203,8 +203,8 @@ export class ComposableFactory {
                     cancellationToken = null;
                 }
                 getting.value = true;
+                cancellationToken = new AbortController();
                 try {
-                    cancellationToken = new AbortController();
                     entity.value = await method(...args, cancellationToken);
                     if (apply) apply(entity as Ref<TDetails>);
                 }
@@ -253,8 +253,8 @@ export class ComposableFactory {
                     cancellationToken = null;
                 }
                 creating.value = true;
+                cancellationToken = new AbortController();
                 try {
-                    cancellationToken = new AbortController();
                     created.value = await method(...args, cancellationToken);
                     if (apply) apply(created as Ref<TDetails>);
                 }
@@ -303,8 +303,8 @@ export class ComposableFactory {
                     cancellationToken = null;
                 }
                 updating.value = true;
+                cancellationToken = new AbortController();
                 try {
-                    cancellationToken = new AbortController();
                     updated.value = await method(...args, cancellationToken);
                     if (apply) apply(updated as Ref<TDetails>);
                 }
@@ -342,8 +342,8 @@ export class ComposableFactory {
                     cancellationToken = null;
                 }
                 removing.value = true;
+                cancellationToken = new AbortController();
                 try {
-                    cancellationToken = new AbortController();
                     await method(...args, cancellationToken);
                 }
                 finally {
