@@ -141,6 +141,7 @@ export class ComposableFactory {
                     if (apply) apply(entities)
                 }
                 finally {
+                    cancellationToken = null;
                     fetching.value = false;
                 }
 
@@ -159,6 +160,7 @@ export class ComposableFactory {
                         if (apply) apply(entities)
                     }
                     finally {
+                        cancellationToken = null;
                         fetching.value = false;
                     }
                 }));
@@ -207,6 +209,7 @@ export class ComposableFactory {
                     if (apply) apply(entity as Ref<TDetails>);
                 }
                 finally {
+                    cancellationToken = null;
                     getting.value = false;
                 }
 
@@ -256,6 +259,7 @@ export class ComposableFactory {
                     if (apply) apply(created as Ref<TDetails>);
                 }
                 finally {
+                    cancellationToken = null;
                     creating.value = false;
                 }
 
@@ -305,6 +309,7 @@ export class ComposableFactory {
                     if (apply) apply(updated as Ref<TDetails>);
                 }
                 finally {
+                    cancellationToken = null;
                     updating.value = false;
                 }
 
@@ -342,6 +347,7 @@ export class ComposableFactory {
                     await method(...args, cancellationToken);
                 }
                 finally {
+                    cancellationToken = null;
                     removing.value = false;
                 }
             }
