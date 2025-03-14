@@ -1,8 +1,8 @@
-import { Ref, onUnmounted, ref } from "vue";
+import { Ref, onUnmounted, ref, computed } from "vue";
 
-import { FilterFactory } from "./filterFactory";
-import { INotifyService } from "../abstractions";
 import { onCollectionChanged, onEntityChanged } from "../tools";
+import { INotifyService } from "../abstractions";
+import { FilterFactory } from "./filterFactory";
 
 export class ComposableFactory {
     public static get<TDetails>(
@@ -116,11 +116,16 @@ export class ComposableFactory {
             });
 
             const fetching = ref(false);
-            const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
+            const _entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
+            let _filter: Ref<(el: TInfos) => boolean> = ref(() => true);
+
+            const entities = computed(() => {
+                return _entities.value.filter(e => _filter.value(e))
+            });
 
             let cancellationToken: AbortController | null = null;
 
-            const getMany = async (...args: [...TArgs, ((el: TDetails) => boolean)?]) => {
+            const getMany = async (...args: [...TArgs, ((el: TInfos) => boolean)?]) => {
                 if (cancellationToken && allowCancellation) {
                     cancellationToken.abort();
                     cancellationToken = null;
@@ -128,7 +133,7 @@ export class ComposableFactory {
                 fetching.value = true;
                 cancellationToken = new AbortController();
 
-                let customFilter: ((el: TDetails) => boolean) | undefined = undefined
+                let customFilter: ((el: TInfos) => boolean) | undefined = undefined
 
                 if (args.length > 1 && typeof args[args.length - 1] === 'function') {
                     customFilter = args.pop();
@@ -137,8 +142,8 @@ export class ComposableFactory {
                 let actualArgs = args as unknown as TArgs;
 
                 try {
-                    entities.value = await method(...actualArgs, cancellationToken);
-                    if (apply) apply(entities)
+                    _entities.value = await method(...actualArgs, cancellationToken);
+                    if (apply) apply(_entities)
                 }
                 finally {
                     cancellationToken = null;
@@ -146,8 +151,9 @@ export class ComposableFactory {
                 }
 
                 const filterMethod = customFilter || (actualArgs.length > 0 ? FilterFactory.create(actualArgs[0]) : () => true);
+                _filter.value = filterMethod
 
-                subscribersIds.push(service.subscribe("all", onCollectionChanged(entities, filterMethod)));
+                subscribersIds.push(service.subscribe("all", onCollectionChanged(_entities)));
                 subscribersIds.push(service.subscribe("reset", async () => {
                     if (cancellationToken && allowCancellation) {
                         cancellationToken.abort();
@@ -156,8 +162,8 @@ export class ComposableFactory {
                     fetching.value = true;
                     cancellationToken = new AbortController();
                     try {
-                        entities.value = await method(...actualArgs, cancellationToken);
-                        if (apply) apply(entities)
+                        _entities.value = await method(...actualArgs, cancellationToken);
+                        if (apply) apply(_entities)
                     }
                     finally {
                         cancellationToken = null;
