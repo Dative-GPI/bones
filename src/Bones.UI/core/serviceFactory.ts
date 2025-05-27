@@ -38,7 +38,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     addGetMany<TInfosDTO, TInfos, TFilter>(url: string | (() => string), entity: new (dto: TInfosDTO) => TInfos)
         : { getMany: (filter?: TFilter) => Promise<TInfos[]> } {
 
-        const getMany = async (filter?: TFilter) => {
+        const getMany = async (filter?: TFilter, controller?: AbortController) => {
             const realUrl = typeof url === "string" ? url : url();
 
             let response;
@@ -46,10 +46,14 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
             // If the service is configured to use GET as POST to prevent issues with large query strings,
             // we send the filter as a POST request with a "_method" parameter to indicate it's a GET request.
             if (ServiceFactory.getAsPost && filter) {
-                response = await ServiceFactory.http.post(buildURL(realUrl, { "_method": "GET" }), filter);
+                response = await ServiceFactory.http.post(buildURL(realUrl, { "_method": "GET" }), filter, {
+                    signal: controller?.signal
+                });
             }
             else {
-                response = await ServiceFactory.http.get(buildURL(realUrl, filter));
+                response = await ServiceFactory.http.get(buildURL(realUrl, filter), {
+                    signal: controller?.signal
+                });
             }
 
             const dtos: TInfosDTO[] = response.data;
