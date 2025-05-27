@@ -23,6 +23,13 @@ const AccountLoginFactory = new ServiceFactory<TestUserDetailsDTO, TestUserDetai
 export const useTestUsersSync = ComposableFactory.sync<TestUserDetails, TestUserInfos>(testUserServiceFactory);
 export const useTestUserTrack = ComposableFactory.trackRef(testUserServiceFactory);
 
+export const useTestUserSubscribe = ComposableFactory.subscribe(testUserServiceFactory);
+
+const { subscribe } = useTestUserSubscribe();
+
+subscribe("add", (ev, payload) => {
+    console.log(ev, payload);
+});
 
 export const useLogin = ComposableFactory.custom(AccountLoginFactory.login, () => {
     const { sync } = useTestUsersSync();

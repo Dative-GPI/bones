@@ -6,6 +6,7 @@ import { INotifyService } from "../abstractions";
 
 export class ServiceFactory<TDetailsDTO, TDetails> {
     static http: AxiosInstance = axios;
+    static getAsPost = false;
 
     private notifyService: NotifyService<TDetails>;
     EntityDetails: new (dto: TDetailsDTO) => TDetails;
@@ -40,7 +41,17 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         const getMany = async (filter?: TFilter) => {
             const realUrl = typeof url === "string" ? url : url();
 
-            const response = await ServiceFactory.http.get(buildURL(realUrl, filter));
+            let response;
+
+            // If the service is configured to use GET as POST to prevent issues with large query strings,
+            // we send the filter as a POST request with a "_method" parameter to indicate it's a GET request.
+            if (ServiceFactory.getAsPost && filter) {
+                response = await ServiceFactory.http.post(buildURL(realUrl, { "_method": "GET" }), filter);
+            }
+            else {
+                response = await ServiceFactory.http.get(buildURL(realUrl, filter));
+            }
+
             const dtos: TInfosDTO[] = response.data;
 
             return dtos.map(dto => new entity(dto));
@@ -145,8 +156,8 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     build<T, U, V, W, X>(target: T, source1: U, source2: V, source3: W, source4: X): T & U & V & W & X
     build<T, U, V, W, X, Y>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y): T & U & V & W & X & Y
     build<T, U, V, W, X, Y, Z>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z): T & U & V & W & X & Y & Z
-    build<T, U, V, W, X, Y, Z, Z1>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1 ): T & U & V & W & X & Y & Z & Z1
-    build<T, U, V, W, X, Y, Z, Z1, Z2>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2 ): T & U & V & W & X & Y & Z & Z1 & Z2
+    build<T, U, V, W, X, Y, Z, Z1>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1): T & U & V & W & X & Y & Z & Z1
+    build<T, U, V, W, X, Y, Z, Z1, Z2>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2): T & U & V & W & X & Y & Z & Z1 & Z2
     build<T, U, V, W, X, Y, Z, Z1, Z2, Z3>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3
     build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3, source10: Z4): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4
     build<T, U, V, W, X, Y, Z, Z1, Z2, Z3, Z4, Z5>(target: T, source1: U, source2: V, source3: W, source4: X, source5: Y, source6: Z, source7: Z1, source8: Z2, source9: Z3, source10: Z4, source11: Z5): T & U & V & W & X & Y & Z & Z1 & Z2 & Z3 & Z4 & Z5

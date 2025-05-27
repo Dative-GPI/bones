@@ -1,6 +1,8 @@
 import _ from "lodash";
 import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 
+import { uuidv4 } from "../tools";
+
 interface WindowsMessage {
     id: string;
     topic: string;
@@ -55,8 +57,7 @@ export class EventQueue {
         this.publishInternal(topic, payload);
 
         if (window.top && window.top !== window.self) {
-            this.messageCounter++;
-            const id = "remote_" + this.messageCounter;
+            const id = uuidv4();
 
             const message: WindowsMessage = {
                 id,
@@ -65,6 +66,7 @@ export class EventQueue {
             };
 
             this.buffer[this.messageCounter % bufferSize] = message.id;
+            this.messageCounter++;
 
             window.top.postMessage(JSON.stringify(message), "*");
         }

@@ -25,6 +25,27 @@ export class ComposableFactory {
         return ComposableFactory.customRemove(service.remove);
     }
 
+    public static subscribe<TDetails>(service: INotifyService<TDetails>) {
+        return () => {
+            let subscribersIds: number[] = [];
+
+            onUnmounted(() => {
+                subscribersIds.forEach(id => service.unsubscribe(id));
+                subscribersIds = [];
+            });
+
+            const subscribe: INotifyService<TDetails>["subscribe"] = (ev: any, callback: any) => {
+                const subscriberId = service.subscribe(ev, callback);
+                subscribersIds.push(subscriberId);
+                return subscriberId;
+            }
+
+            return {
+                subscribe
+            }
+        }
+    }
+
     public static custom<TDetails, TArgs extends any[]>(method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
