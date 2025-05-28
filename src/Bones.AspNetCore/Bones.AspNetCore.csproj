@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Bones.Monitoring\Bones.Monitoring.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Version>$(VERSION)</Version>
+    <Authors>dative-gpi</Authors>
+    <Company>dative-gpi</Company>
+  </PropertyGroup>
+
+</Project>
