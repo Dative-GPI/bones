@@ -95,7 +95,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     }
 
 
-    static addCancellable<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: [...TArgs, AbortController]) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult) {
+    static addCustomCancellable<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: [...TArgs, AbortController]) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult) {
 
         const fetch = async (...args: [...TArgs, AbortController]) => {
             const response = await call(ServiceFactory.http, ...args);
