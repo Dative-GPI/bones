@@ -9,7 +9,7 @@ export class ComposableFactory {
         return ComposableFactory.customGet(service, service.get, applyFactory);
     }
 
-    public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
+    public static getMany<TDetails extends TInfos, TInfos, TFilter>(service: { getMany(filter?: TFilter, controller?: AbortController): Promise<TInfos[]> } & INotifyService<TDetails>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
         return ComposableFactory.customGetMany(service, service.getMany, applyFactory);
     }
 
@@ -115,9 +115,11 @@ export class ComposableFactory {
      * Warning : read the code before using this method, the first argument in the method is used to create a filter
      * The last argument passed to the getMany composable can be a custom filter function that will override the default filter
      * */
-    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: TArgs) => Promise<TInfos[]>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
+    public static customGetMany<TDetails extends TInfos, TInfos, TArgs extends any[]>(service: INotifyService<TDetails>, method: (...args: [...TArgs, AbortController]) => Promise<TInfos[]>, applyFactory?: () => (entities: Ref<TInfos[]>) => void) {
         return () => {
             const apply = applyFactory ? applyFactory() : () => { };
+            
+            let cancellationToken = new AbortController();
             let subscribersIds: number[] = [];
 
             onUnmounted(() => {
@@ -129,6 +131,11 @@ export class ComposableFactory {
             const entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
 
             const getMany = async (...args: [...TArgs, ((el: TDetails) => boolean)?]) => {
+                
+                // abort previous request if any
+                cancellationToken.abort();
+                cancellationToken = new AbortController();
+
                 fetching.value = true;
 
                 let customFilter: ((el: TDetails) => boolean) | undefined = undefined
@@ -140,7 +147,7 @@ export class ComposableFactory {
                 let actualArgs = args as unknown as TArgs;
 
                 try {
-                    entities.value = await method(...actualArgs);
+                    entities.value = await method(...actualArgs, cancellationToken);
                     if (apply) apply(entities)
                 }
                 finally {
@@ -153,7 +160,7 @@ export class ComposableFactory {
                 subscribersIds.push(service.subscribe("reset", async () => {
                     fetching.value = true;
                     try {
-                        entities.value = await method(...actualArgs);
+                        entities.value = await method(...actualArgs, cancellationToken);
                         if (apply) apply(entities)
                     }
                     finally {

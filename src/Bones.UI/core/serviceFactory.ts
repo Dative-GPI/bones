@@ -36,9 +36,9 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
     }
 
     addGetMany<TInfosDTO, TInfos, TFilter>(url: string | (() => string), entity: new (dto: TInfosDTO) => TInfos)
-        : { getMany: (filter?: TFilter) => Promise<TInfos[]> } {
+        : { getMany: (filter?: TFilter, controller?: AbortController) => Promise<TInfos[]> } {
 
-        const getMany = async (filter?: TFilter) => {
+        const getMany = async (filter?: TFilter, controller?: AbortController) => {
             const realUrl = typeof url === "string" ? url : url();
 
             let response;
@@ -46,10 +46,14 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
             // If the service is configured to use GET as POST to prevent issues with large query strings,
             // we send the filter as a POST request with a "_method" parameter to indicate it's a GET request.
             if (ServiceFactory.getAsPost && filter) {
-                response = await ServiceFactory.http.post(buildURL(realUrl, { "_method": "GET" }), filter);
+                response = await ServiceFactory.http.post(buildURL(realUrl, { "_method": "GET" }), filter, {
+                    signal: controller?.signal
+                });
             }
             else {
-                response = await ServiceFactory.http.get(buildURL(realUrl, filter));
+                response = await ServiceFactory.http.get(buildURL(realUrl, filter), {
+                    signal: controller?.signal
+                });
             }
 
             const dtos: TInfosDTO[] = response.data;
@@ -76,7 +80,7 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         return { get };
     }
 
-    static addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult): Record<T, (...args: TArgs) => Promise<TResult>> {
+    static addCustom<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: TArgs) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult) {
 
         const fetch = async (...args: TArgs) => {
             const response = await call(ServiceFactory.http, ...args);
@@ -88,6 +92,21 @@ export class ServiceFactory<TDetailsDTO, TDetails> {
         }
 
         return { [name]: fetch } as Record<T, (...args: TArgs) => Promise<TResult>>;
+    }
+
+
+    static addCustomCancellable<T extends string, TArgs extends any[], TResultDTO, TResult>(name: T, call: (axios: AxiosInstance, ...args: [...TArgs, AbortController]) => Promise<AxiosResponse>, mapper: (dto: TResultDTO) => TResult) {
+
+        const fetch = async (...args: [...TArgs, AbortController]) => {
+            const response = await call(ServiceFactory.http, ...args);
+            const dto: TResultDTO = response.data;
+
+            const result = mapper(dto);
+
+            return result;
+        }
+
+        return { [name]: fetch } as Record<T, (...args: [...TArgs, AbortController]) => Promise<TResult>>;
     }
 
     addCreate<TCreateDTO>(url: string | (() => string))
