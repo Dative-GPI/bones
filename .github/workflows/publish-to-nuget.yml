@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        folder: [Bones, Bones.Akka, Bones.Converters, Bones.Flow, Bones.Grpc, Bones.Tests, Bones.X509, Bones.Akka.Monitoring, Bones.Monitoring]
+        folder: [Bones, Bones.Akka, Bones.AspNetCore, Bones.Converters, Bones.Flow, Bones.Grpc, Bones.Tests, Bones.X509, Bones.Akka.Monitoring, Bones.Monitoring]
     steps:
       # Checking out repository
       - name: Checkout 🛎️

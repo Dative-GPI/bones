@@ -14,7 +14,17 @@ namespace Bones.Monitoring.Core.Metrics
 
         public ICounter<T> GetCounter<T>(string key, Meter meter, string unit = null, string description = null) where T : struct
         {
-            var counter = counters.GetOrAdd(key, new CounterMetric<T>(meter, key, unit, description));
+            object counter;
+            if (!counters.ContainsKey(key))
+            {
+                counter = new CounterMetric<T>(meter, key, unit, description);
+                counters.TryAdd(key, counter);
+            }
+            else
+            {
+                counter = counters[key];
+            }
+            
             if(counter is CounterMetric<T> typedCounter)
             {
                 return typedCounter;
@@ -27,8 +37,18 @@ namespace Bones.Monitoring.Core.Metrics
 
         public IHistogram<T> GetHistogram<T>(string key, Meter meter, string unit = null, string description = null) where T : struct
         {
-            var counter = counters.GetOrAdd(key, new HistogramMetric<T>(meter, key, unit, description));
-            if(counter is HistogramMetric<T> typedCounter)
+            object counter;
+            if (!counters.ContainsKey(key))
+            {
+                counter = new HistogramMetric<T>(meter, key, unit, description);
+                counters.TryAdd(key, counter);
+            }
+            else
+            {
+                counter = counters[key];
+            }
+            
+            if (counter is HistogramMetric<T> typedCounter)
             {
                 return typedCounter;
             }

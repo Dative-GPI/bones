@@ -1,4 +1,4 @@
-import { Ref, onUnmounted, ref, computed } from "vue";
+import { Ref, onUnmounted, ref, computed, computed } from "vue";
 
 import { FilterFactory } from "./filterFactory";
 import { INotifyService } from "../abstractions";
@@ -23,27 +23,6 @@ export class ComposableFactory {
 
     public static remove(service: { remove(id: string): Promise<void> }) {
         return ComposableFactory.customRemove(service.remove);
-    }
-
-    public static subscribe<TDetails>(service: INotifyService<TDetails>) {
-        return () => {
-            let subscribersIds: number[] = [];
-
-            onUnmounted(() => {
-                subscribersIds.forEach(id => service.unsubscribe(id));
-                subscribersIds = [];
-            });
-
-            const subscribe: INotifyService<TDetails>["subscribe"] = (ev: any, callback: any) => {
-                const subscriberId = service.subscribe(ev, callback);
-                subscribersIds.push(subscriberId);
-                return subscriberId;
-            }
-
-            return {
-                subscribe
-            }
-        }
     }
 
     public static custom<TDetails, TArgs extends any[]>(method: (...args: TArgs) => Promise<TDetails>, applyFactory?: () => (entity: Ref<TDetails>) => void) {
