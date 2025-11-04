@@ -21,36 +21,48 @@ namespace Demo.Flow.Console
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
-        {            
-                var logger = _services.GetRequiredService<ILogger<Program>>();
+        {
+            var logger = _services.GetRequiredService<ILogger<Program>>();
 
-                Activity.CurrentChanged += (sender, args) =>
+            Activity.CurrentChanged += (sender, args) =>
+            {
+                var current = Activity.Current;
+                if (current != null)
                 {
-                    var current = Activity.Current;
-                    if (current != null)
-                    {
-                        logger.LogInformation($"Activity.CurrentChanged: {current.OperationName}");
-                    }
-                };
+                    logger.LogInformation($"Activity.CurrentChanged: {current.OperationName}");
+                }
+            };
 
-                ICommandHandler<HelloWorldCommand> helloCommandHandler = _services.GetRequiredService<ICommandHandler<HelloWorldCommand>>();
-                IQueryHandler<BoolQuery, bool> boolQueryHandler = _services.GetRequiredService<IQueryHandler<BoolQuery, bool>>();
+            for (var i = 0; i < 10_000_000; i++)
+            {
+                using var scope = _services.CreateScope();
 
-                var command = new HelloWorldCommand();
-                command.Message = "First Command";
+                var stopWatch = Stopwatch.StartNew();
+                var handler = scope.ServiceProvider.GetRequiredService<ICommandHandler<HelloWorldCommand>>();
+                stopWatch.Stop();
 
-                var query = new BoolQuery();
-                query.Message = "First Query";
+                if(i % 10_000 == 0)
+                    logger.LogInformation($"Resolved ICommandHandler<HelloWorldCommand> in {stopWatch.ElapsedMilliseconds} ms");
+            }
 
-                // while(true)
-                // {
-                    await helloCommandHandler.HandleAsync(command);
-                    // var res = await boolQueryHandler.HandleAsync(query);
-                    // System.Console.WriteLine(res);
-                    await Task.Delay(1000, cancellationToken);
-                // }
+            ICommandHandler<HelloWorldCommand> helloCommandHandler = _services.GetRequiredService<ICommandHandler<HelloWorldCommand>>();
+            IQueryHandler<BoolQuery, bool> boolQueryHandler = _services.GetRequiredService<IQueryHandler<BoolQuery, bool>>();
 
-                // return Task.CompletedTask;
+            var command = new HelloWorldCommand();
+            command.Message = "First Command";
+
+            var query = new BoolQuery();
+            query.Message = "First Query";
+
+            // while(true)
+            // {
+            await helloCommandHandler.HandleAsync(command);
+            // var res = await boolQueryHandler.HandleAsync(query);
+            // System.Console.WriteLine(res);
+            await Task.Delay(1000, cancellationToken);
+            // }
+
+            // return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
