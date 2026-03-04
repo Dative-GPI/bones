@@ -44,7 +44,7 @@ export function useDomRenderer<TProps extends Record<string, any>>(component: Co
 
     const unsubscribe = () => {
       if (!subscriptions.has(subscription)) {
-        throw new Error("This render handle has already been unsubscribed");;
+        throw new Error("This render handle has already been unsubscribed");
       }
       destroySubscription(subscription);
       subscriptions.delete(subscription);
