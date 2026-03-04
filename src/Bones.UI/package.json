@@ -1,8 +1,5 @@
 {
     "name": "@dative-gpi/bones-ui",
-    "repository" : {
-        "url": "https://github.com/Dative-GPI/bones.git"
-    },
     "version": "1.0.0",
     "description": "",
     "main": "index.ts",

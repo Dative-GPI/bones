@@ -32,6 +32,5 @@ jobs:
       # Publishing with tag name as version
       - name: Publishing to npm 🚀
         run: |
-          cd ${{ matrix.folder}}
-          npm version ${{ github.ref_name }} --no-git-tag-version
-          npm publish --access public
+          lerna publish ${{ github.ref_name }} --exact --no-git-tag-version --yes --no-private --force-publish
+
