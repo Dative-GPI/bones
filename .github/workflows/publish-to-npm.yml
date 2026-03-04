@@ -23,7 +23,7 @@ jobs:
       - name: Setting things up 🔧
         uses: actions/setup-node@v2
         with:
-          node-version: "20.x"
+          node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
           # User or organization
           scope: "@dative-gpi"
@@ -33,6 +33,5 @@ jobs:
       - name: Publishing to npm 🚀
         run: |
           cd ${{ matrix.folder}}
-          yarn
-          yarn version --new-version ${{ github.ref_name }} --no-git-tag-version
-          yarn publish --access public
+          npm version ${{ github.ref_name }} --no-git-tag-version
+          npm publish --access public
