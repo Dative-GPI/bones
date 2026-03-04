@@ -2,9 +2,10 @@ name: Publish Package to NPM
 
 on:
   workflow_call:
-    secrets:
-      NPM_TOKEN:
-        required: true
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   publish:
@@ -26,7 +27,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           # User or organization
           scope: "@dative-gpi"
-          always-auth: true
 
 
       # Publishing with tag name as version
@@ -36,5 +36,3 @@ jobs:
           yarn
           yarn version --new-version ${{ github.ref_name }} --no-git-tag-version
           yarn publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
