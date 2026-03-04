@@ -32,6 +32,5 @@ jobs:
       # Publishing with tag name as version
       - name: Publishing to npm 🚀
         run: |
-          npm install
           lerna publish ${{ github.ref_name }} --exact --no-git-tag-version --yes --no-private --force-publish
 

@@ -1,11 +1,12 @@
 {
   "private": true,
+  "type": "module",
   "repository" : {
       "url": "https://github.com/Dative-GPI/bones.git"
   },
   "workspaces": [
-    "./src/Bones.UI",
-    "./tests/Bones.UI.Tests"
+    "src/Bones.UI",
+    "tests/Bones.UI.Tests"
   ],
   "devDependencies": {
     "lerna": "9.0.0"
