@@ -1,4 +1,4 @@
-import { h, render, getCurrentInstance, onBeforeUnmount, toValue, type Component, type MaybeRefOrGetter, watch } from "vue";
+import { h, render, getCurrentInstance, onBeforeUnmount, toValue, type MaybeRefOrGetter, watch, DefineComponent } from "vue";
 
 export interface RenderHandle {
   unsubscribe: () => void;
@@ -16,7 +16,7 @@ function destroySubscription(subscription: Subscription) {
   subscription.mountPoint.remove();
 }
 
-export function useDomRenderer<TProps extends Record<string, any>>(component: Component<TProps>) {
+export function useDomRenderer<TProps extends Record<string, any>>(component: DefineComponent<TProps>) {
 
   const instance = getCurrentInstance();
   if (!instance) {
