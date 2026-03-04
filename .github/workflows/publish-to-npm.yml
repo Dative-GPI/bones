@@ -33,4 +33,6 @@ jobs:
       - name: Publishing to npm 🚀
         run: |
           lerna publish ${{ github.ref_name }} --exact --no-git-tag-version --yes --no-private --force-publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
