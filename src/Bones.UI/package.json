@@ -5,6 +5,9 @@
     },
     "version": "1.0.0",
     "description": "",
+    "publishConfig": {
+        "access": "public"
+    },
     "main": "index.ts",
     "author": "",
     "license": "ISC",
