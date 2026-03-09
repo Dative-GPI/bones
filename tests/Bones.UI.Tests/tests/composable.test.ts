@@ -89,14 +89,14 @@ test('testComposableComplexeFilter', async () => {
   mock.onGet(buildURL(TEST_USERS_URL, {label: "test3"})).reply(200, [{ id: "1", label: "test1" },{ id: "2", label: "test2" }]);
   const { getMany, entities: users } = useTestUsers();
   await getMany({ label: "test3"});
-  expect(users.value?.length).toBe(2);
+  expect(users.value?.length).toBe(0);
   const { create, created } = useCreateTestUser();
   mock.onPost(TEST_USERS_URL).reply(200,  { id: "3", label: "filtered" });
   await create({ label: "filtered" });
   expect(created).toBeTruthy();
-  expect(users.value?.length).toBe(2);
+  expect(users.value?.length).toBe(0);
   mock.onPost(TEST_USERS_URL).reply(200,  { id: "4", label: "test3" });
   await create({ label: "test3" });
   expect(created).toBeTruthy();
-  expect(users.value?.length).toBe(3);  
+  expect(users.value?.length).toBe(1);  
 });
