@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "bones-ui-tests",
   "devDependencies": {
     "@dative-gpi/bones-ui": "1.0.0",
