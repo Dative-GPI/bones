@@ -130,9 +130,9 @@ export class ComposableFactory {
             const _entities = ref<TInfos[]>([]) as Ref<TInfos[]>;
             let _filter: Ref<(el: TInfos) => boolean> = ref(() => true);
 
-            const entities = computed(() => {
-                return _entities.value.filter(e => _filter.value(e))
-            });
+            // const entities = computed(() => {
+            //     return _entities.value.filter(e => _filter.value(e))
+            // });
 
             const getMany = async (...args: [...TArgs, ((el: TInfos) => boolean)?]) => {
                 fetching.value = true;
@@ -168,13 +168,13 @@ export class ComposableFactory {
                     }
                 }));
 
-                return entities;
+                return _entities;
             }
 
             return {
                 fetching: fetching,
                 getMany,
-                entities: entities
+                entities: _entities
             }
         }
     }
