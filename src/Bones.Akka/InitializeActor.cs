@@ -62,12 +62,13 @@ namespace Bones.Akka
             try
             {
                 await Initialize();
+                ReinitializeCount = 0;
+                Stash.UnstashAll();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[{path}] An error occurred during initialization. Retrying...", Self.Path);
                 Reinitialize();
-                return;
             }
         }
 
