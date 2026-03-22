@@ -9,7 +9,7 @@ namespace Bones.Flow.Core
     internal class ChainOfResponsibility<TRequest> : IChainOfResponsibility<TRequest>
         where TRequest : IRequest
     {
-        private List<IChainOfResponsibilityHandler<TRequest>> _handlers;
+        private List<IChainOfResponsibilityHandler<TRequest>> _handlers = new List<IChainOfResponsibilityHandler<TRequest>>();
         private ILogger<ChainOfResponsibility<TRequest>> _logger;
 
         public ChainOfResponsibility(

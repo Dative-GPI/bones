@@ -54,6 +54,9 @@ namespace Bones.Monitoring.Core.Tracing
 
         public ITrace Enrich(ITrace trace, object param, string optionsName)
         {
+            if (_options == null)
+                return trace;
+
             var option = _options.Get(optionsName);
             if(option != null && option.SpanEnricher != null) option.SpanEnricher(trace, param);
             return trace;
