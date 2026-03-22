@@ -14,5 +14,20 @@ namespace Bones.Flow
         {
             return provider.GetRequiredService<IPipelineFactory<TRequest, TResult>>();
         }
+
+        public static IResponsibilityChainFactory<TRequest> GetResponsibilityChainFactory<TRequest>(this IServiceProvider provider) where TRequest : IRequest
+        {
+            return provider.GetRequiredService<IResponsibilityChainFactory<TRequest>>();
+        }
+
+        internal static IResponsibilityChainLink<TRequest> GetResponsibilityChainLink<TRequest>(
+            this IServiceProvider provider,
+            IResponsibilityChainHandler<TRequest> handler
+        ) where TRequest : IRequest
+        {
+            var wrapper = provider.GetRequiredService<IResponsibilityChainLink<TRequest>>();
+            wrapper.SetHandler(handler);
+            return wrapper;
+        }
     }
 }

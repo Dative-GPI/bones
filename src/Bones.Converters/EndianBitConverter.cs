@@ -165,18 +165,33 @@ namespace Bones.Converters
         }
 
 
+        public virtual long ToInt(byte[] value)
+        {
+            return ToInt(value, 0);
+        }
+
         public virtual long ToInt(byte[] value, int startIndex)
         {
-            switch (value.Length)
+            switch (value.Length - startIndex)
             {
                 case 0:
                     return 0;
+                case 1:
+                    return (short)(ToInt16(value, startIndex) >> 8);
                 case 2:
-                    return ToInt16(value, 0);
+                    return ToInt16(value, startIndex);
+                case 3:
+                    return ToInt32(value, startIndex) >> 8;
                 case 4:
-                    return ToInt32(value, 0);
+                    return ToInt32(value, startIndex);
+                case 5:
+                    return ToInt64(value, startIndex) >> 24;
+                case 6:
+                    return ToInt64(value, startIndex) >> 16;
+                case 7:
+                    return ToInt64(value, startIndex) >> 8;
                 case 8:
-                    return ToInt64(value, 0);
+                    return ToInt64(value, startIndex);
                 default:
                     throw new NotImplementedException($"Data can't be converted to int - b64: {Convert.ToBase64String(value)} \tLength: {value.Length}");
             }
@@ -207,29 +222,84 @@ namespace Bones.Converters
         public abstract long ToInt64(byte[] value, int startIndex);
 
 
-        public virtual ulong ToUInt(byte[] value, int startIndex)
+        public virtual double ToFloat(byte[] value)
         {
             switch (value.Length)
             {
                 case 0:
                     return 0;
-                case 1:
-                    return (UInt16)(ToUInt16(value, 0) >> 8);
                 case 2:
-                    return ToUInt16(value, 0);
-                case 3:
-                    return ToUInt32(value, 0) >> 8;
+                    return ToHalf(value, 0);
                 case 4:
-                    return ToUInt32(value, 0);
-
-                case 5:
-                    return ToUInt64(value, 0) >> 24;
-                case 6:
-                    return ToUInt64(value, 0) >> 16;
-                case 7:
-                    return ToUInt64(value, 0) >> 8;
+                    return ToSingle(value, 0);
                 case 8:
-                    return ToUInt64(value, 0);
+                    return ToDouble(value, 0);
+                default:
+                    throw new NotImplementedException($"Data can't be converted to float - b64: {Convert.ToBase64String(value)} \tLength: {value.Length}");
+            }
+        }
+
+        public float ToHalf(byte[] value, int startIndex)
+        {
+            var intVal = ToUInt16(value, startIndex);
+            int sign = (intVal >> 15) & 0x0001;
+            int exponent = (intVal >> 10) & 0x001F;
+            int mantissa = intVal & 0x03FF;
+
+            if (exponent == 0)
+            {
+                if (mantissa == 0)
+                    return sign == 0 ? 0f : -0f;
+                // Subnormal
+                while ((mantissa & 0x0400) == 0)
+                {
+                    mantissa <<= 1;
+                    exponent--;
+                }
+                exponent++;
+                mantissa &= ~0x0400;
+            }
+            else if (exponent == 31)
+            {
+                return mantissa == 0
+                    ? (sign == 0 ? float.PositiveInfinity : float.NegativeInfinity)
+                    : float.NaN;
+            }
+
+            exponent = exponent + (127 - 15);
+            mantissa = mantissa << 13;
+
+            int floatBits = (sign << 31) | (exponent << 23) | mantissa;
+            return new Int32SingleUnion(floatBits).AsSingle;
+        }
+
+        public virtual ulong ToUInt(byte[] value)
+        {
+            return ToUInt(value, 0);
+        }
+
+        public virtual ulong ToUInt(byte[] value, int startIndex)
+        {
+            switch (value.Length - startIndex)
+            {
+                case 0:
+                    return 0;
+                case 1:
+                    return (UInt16)(ToUInt16(value, startIndex) >> 8);
+                case 2:
+                    return ToUInt16(value, startIndex);
+                case 3:
+                    return ToUInt32(value, startIndex) >> 8;
+                case 4:
+                    return ToUInt32(value, startIndex);
+                case 5:
+                    return ToUInt64(value, startIndex) >> 24;
+                case 6:
+                    return ToUInt64(value, startIndex) >> 16;
+                case 7:
+                    return ToUInt64(value, startIndex) >> 8;
+                case 8:
+                    return ToUInt64(value, startIndex);
                 default:
                     throw new NotImplementedException($"Data can't be convert to uint - b64: {Convert.ToBase64String(value)}");
             }

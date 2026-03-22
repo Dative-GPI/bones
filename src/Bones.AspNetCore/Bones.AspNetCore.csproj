@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Version>$(VERSION)</Version>
     <Authors>dative-gpi</Authors>
     <Company>dative-gpi</Company>

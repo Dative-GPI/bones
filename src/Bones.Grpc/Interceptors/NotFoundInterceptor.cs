@@ -19,7 +19,7 @@ namespace Bones.Grpc
                     }
                     catch (AggregateException ex)
                     {
-                        if(ex.InnerException is RpcException rpcException 
+                        if(ex.InnerException is RpcException rpcException
                             && rpcException.StatusCode == StatusCode.NotFound){
                             return null;
                         }
@@ -27,7 +27,7 @@ namespace Bones.Grpc
                     }
                 }
             );
-            
+
             return new AsyncUnaryCall<TResponse>(responseWithErrorhandling, response.ResponseHeadersAsync, response.GetStatus, response.GetTrailers, response.Dispose);
         }
     }

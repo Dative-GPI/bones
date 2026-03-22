@@ -76,6 +76,11 @@ namespace Bones.Akka.DI
                 return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
 
+            services.AddScoped<Creator<TActor>>(sp =>
+            {
+                return (context) => DependencyResolver.For(context.System).Props<TActor>();
+            });
+
             return services;
         }
 
