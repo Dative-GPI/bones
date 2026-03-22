@@ -31,7 +31,7 @@ namespace Bones.Akka.DI
                 return actorSystem;
             });
 
-            services.AddScoped<Creator>(sp =>
+            services.AddSingleton<Creator>(sp =>
             {
                 return (type, context) =>  DependencyResolver.For(context.System).Props(type);
             });
@@ -44,7 +44,7 @@ namespace Bones.Akka.DI
         {
             services.AddScoped<TActor>();
 
-            services.AddScoped<Creator<TActor>>(sp =>
+            services.AddSingleton<Creator<TActor>>(sp =>
             {
                 return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
@@ -71,12 +71,12 @@ namespace Bones.Akka.DI
         {
             services.AddScoped<TActor>();
 
-            services.AddScoped<Creator<TInterface>>(sp =>
+            services.AddSingleton<Creator<TInterface>>(sp =>
             {
                 return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
 
-            services.AddScoped<Creator<TActor>>(sp =>
+            services.AddSingleton<Creator<TActor>>(sp =>
             {
                 return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
