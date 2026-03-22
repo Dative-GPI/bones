@@ -52,20 +52,6 @@ namespace Bones.Akka.DI
             return services;
         }
 
-        
-        public static IServiceCollection AddRootCreator<TActor>(this IServiceCollection services)
-            where TActor : ActorBase
-        {
-            services.AddScoped<TActor>();
-
-            services.AddSingleton<RootCreator<TActor>>(sp =>
-            {
-                return (context) => DependencyResolver.For(context).Props<TActor>();
-            });
-
-            return services;
-        }
-
         public static IServiceCollection AddCreator<TInterface, TActor>(this IServiceCollection services)
             where TActor : ActorBase, TInterface
         {
