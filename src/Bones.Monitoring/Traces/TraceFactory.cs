@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,10 +11,10 @@ namespace Bones.Monitoring.Core.Tracing
         private ILogger<TraceFactory> _logger;
         private IOptionsMonitor<BonesMonitoringOptions> _options;
 
-        public TraceFactory(ILogger<TraceFactory> logger, IOptionsMonitor<BonesMonitoringOptions> options)
+        public TraceFactory(ILogger<TraceFactory> logger, IServiceProvider provider)
         {
             _logger = logger;
-            _options = options;
+            _options = provider.GetService<IOptionsMonitor<BonesMonitoringOptions>>();
         }
 
         public ITrace Create(ActivitySource source, string name, ITrace parent = null)

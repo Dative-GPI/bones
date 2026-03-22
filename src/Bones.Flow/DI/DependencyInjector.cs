@@ -19,8 +19,13 @@ namespace Bones.Flow
             services.AddScoped(typeof(IPipelineFactory<,>), typeof(RequestResultPipelineFactory<,>));
             services.AddScoped(typeof(IPipeline<,>), typeof(RequestResultPipeline<,>));
 
+            services.AddScoped(typeof(IChainOfResponsibilityFactory<>), typeof(ChainOfResponsibilityFactory<>));
+            services.AddScoped(typeof(IChainOfResponsibility<>), typeof(ChainOfResponsibility<>));
+            services.AddScoped(typeof(IChainOfResponsibilityFactory<,>), typeof(ResultChainOfResponsibilityFactory<,>));
+            services.AddScoped(typeof(IChainOfResponsibility<,>), typeof(ResultChainOfResponsibility<,>));
+
             services.AddMonitoring(BONES_FLOW_INSTRUMENTATION, configureMonitoringOptions);
-            
+
             return services;
         }
 

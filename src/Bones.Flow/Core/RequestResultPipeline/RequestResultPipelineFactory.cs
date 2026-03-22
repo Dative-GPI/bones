@@ -51,7 +51,11 @@ namespace Bones.Flow.Core
         public IBuildablePipelineFactory<TRequest, TResult> Add<TMiddleware>() where TMiddleware : IMiddleware<TRequest, TResult>
         {
             var middleware = _provider.GetRequiredService<TMiddleware>();
+            return Add(middleware);
+        }
 
+        public IBuildablePipelineFactory<TRequest, TResult> Add<TMiddleware>(TMiddleware middleware) where TMiddleware : IMiddleware<TRequest, TResult>
+        {
             _requestResultMiddlewares.Add(middleware);
             _middlewareTypes.Add(MiddlewareType.RequestResultMiddleware);
 
@@ -61,7 +65,11 @@ namespace Bones.Flow.Core
         public IPipelineFactory<TRequest, TResult> With<TMiddleware>() where TMiddleware : IMiddleware<TRequest>
         {
             var middleware = _provider.GetRequiredService<TMiddleware>();
+            return With(middleware);
+        }
 
+        public IPipelineFactory<TRequest, TResult> With<TMiddleware>(TMiddleware middleware) where TMiddleware : IMiddleware<TRequest>
+        {
             _requestMiddlewares.Add(middleware);
             _middlewareTypes.Add(MiddlewareType.RequestMiddleware);
 
