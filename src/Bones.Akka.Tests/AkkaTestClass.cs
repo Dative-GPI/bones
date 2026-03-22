@@ -65,9 +65,5 @@ namespace Bones.Akka.Tests
                 Props.Create(() => new ProxyNodeActor(CreateLogger<ProxyNodeActor>(), probe));
         }
 
-        public IActorRefProvider<T> CreateActorRefProvider<T>(TestProbe probe)
-        {
-            return new ActorRefProvider<T>(ActorSelection(probe.Ref.Path));
-        }
     }
 }

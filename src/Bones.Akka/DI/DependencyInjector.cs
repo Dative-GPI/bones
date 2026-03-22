@@ -84,16 +84,5 @@ namespace Bones.Akka.DI
             return services;
         }
 
-        public static IServiceCollection AddActorRef<TInterface>(this IServiceCollection services, string pattern)
-        {
-            services.AddSingleton<IActorRefProvider<TInterface>>(sp => {
-                var actorSystem = sp.GetRequiredService<ActorSystem>();
-                return new ActorRefProvider<TInterface>(
-                    actorSystem.ActorSelection(pattern)
-                );
-            });
-
-            return services;
-        }
     }
 }
