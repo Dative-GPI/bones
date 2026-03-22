@@ -81,32 +81,31 @@ Tout est du pur calcul binaire sans couplage metier.
 
 ---
 
-## 8. Bones.Flow — ResponsibilityChain + Traces
+## 8. Bones.Flow — ChainOfResponsibility
 
-**Action** : AJOUTER `Core/ResponsibilityChain/` (3 fichiers) + interfaces (4 fichiers)
+**Action** : AJOUTER `Core/ChainOfResponsibility/` (4 fichiers) + interfaces (3 fichiers)
 
 **Justification** : Implementation du design pattern Chain of Responsibility, integre au systeme
-de pipeline Bones.Flow. Utilise par 15 fichiers (handlers de contexte, publishers gateway).
+de pipeline Bones.Flow. Deux variantes : `<TRequest>` (sans resultat) et `<TRequest, TResult>` (avec resultat).
+Implemente `IMiddleware` pour etre composable avec Pipeline via `.With(cor)` / `.Add(cor)`.
+Utilise par 15 fichiers dans DAT'Acquisition (handlers de contexte, publishers gateway).
 Le pattern est un GoF classique, l'implementation ne contient aucun couplage metier.
-
-Les fichiers Traces (ITrace, ITraceFactory, Trace, TraceFactory) restent dans Bones.Flow
-car ils existaient avant l'introduction de Bones.Monitoring. On pourra les deprecier plus tard
-en faveur de Bones.Monitoring.
 
 ---
 
 ## 9. Bones.Grpc — Interceptors et Extensions
 
-**Action** : AJOUTER `DI/DependencyInjector.cs`, `Extensions/AddGrpcClientWithInterceptorsExtensions.cs`,
+**Action** : AJOUTER `DI/DependencyInjector.cs`,
 `Extensions/ByteStringExtensions.cs`, `Interceptors/DeadlineInterceptor.cs`,
 `Interceptors/StreamDeadlineInterceptor.cs`
 
 **Justification** : Infrastructure gRPC standard :
 - `DeadlineInterceptor` : ajoute un deadline de 5s aux appels unaires — best practice gRPC pour eviter les appels pendants
 - `StreamDeadlineInterceptor` : deadline de 30min pour le streaming serveur
-- `AddGrpcClientWithInterceptors<T>()` : extension DI pour enregistrer un client gRPC avec ses interceptors
 - `ByteStringExtensions` : conversion `byte[] → ByteString` (commodite Protobuf)
 - Le `NotFoundInterceptor` existe deja dans le NuGet
+
+Chaque applicatif definit sa propre methode d'extension pour composer les interceptors souhaites.
 
 Tout est de l'infrastructure gRPC generique.
 
