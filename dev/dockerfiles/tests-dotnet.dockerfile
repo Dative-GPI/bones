@@ -13,7 +13,7 @@ RUN find . -type d -empty -delete
 
 # ----------------------------------------
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 WORKDIR /app
 

@@ -11,11 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        folder: [Bones, Bones.Akka, Bones.AspNetCore, Bones.Converters, Bones.Flow, Bones.Grpc, Bones.Tests, Bones.X509, Bones.Akka.Monitoring, Bones.Monitoring]
+        folder: [Bones, Bones.Akka, Bones.Akka.Tests, Bones.AspNetCore, Bones.Converters, Bones.Flow, Bones.Grpc, Bones.Selectors, Bones.Tests, Bones.X509, Bones.Akka.Monitoring, Bones.Monitoring]
     steps:
       # Checking out repository
       - name: Checkout 🛎️
         uses: actions/checkout@v2.3.1
+
+      - name: Setup .NET 10.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
       # pack file to publish to NuGet
       - name: Create a NuGet Package 🔧

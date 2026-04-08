@@ -31,7 +31,7 @@ namespace Bones.Akka.DI
                 return actorSystem;
             });
 
-            services.AddScoped<Creator>(sp =>
+            services.AddSingleton<Creator>(sp =>
             {
                 return (type, context) =>  DependencyResolver.For(context.System).Props(type);
             });
@@ -44,23 +44,9 @@ namespace Bones.Akka.DI
         {
             services.AddScoped<TActor>();
 
-            services.AddScoped<Creator<TActor>>(sp =>
+            services.AddSingleton<Creator<TActor>>(sp =>
             {
                 return (context) => DependencyResolver.For(context.System).Props<TActor>();
-            });
-
-            return services;
-        }
-
-        
-        public static IServiceCollection AddRootCreator<TActor>(this IServiceCollection services)
-            where TActor : ActorBase
-        {
-            services.AddScoped<TActor>();
-
-            services.AddSingleton<RootCreator<TActor>>(sp =>
-            {
-                return (context) => DependencyResolver.For(context).Props<TActor>();
             });
 
             return services;
@@ -71,7 +57,12 @@ namespace Bones.Akka.DI
         {
             services.AddScoped<TActor>();
 
-            services.AddScoped<Creator<TInterface>>(sp =>
+            services.AddSingleton<Creator<TInterface>>(sp =>
+            {
+                return (context) => DependencyResolver.For(context.System).Props<TActor>();
+            });
+
+            services.AddSingleton<Creator<TActor>>(sp =>
             {
                 return (context) => DependencyResolver.For(context.System).Props<TActor>();
             });
@@ -79,16 +70,5 @@ namespace Bones.Akka.DI
             return services;
         }
 
-        public static IServiceCollection AddActorRef<TInterface>(this IServiceCollection services, string pattern)
-        {
-            services.AddSingleton<IActorRefProvider<TInterface>>(sp => {
-                var actorSystem = sp.GetRequiredService<ActorSystem>();
-                return new ActorRefProvider<TInterface>(
-                    actorSystem.ActorSelection(pattern)
-                );
-            });
-
-            return services;
-        }
     }
 }

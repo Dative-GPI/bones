@@ -24,10 +24,14 @@ namespace Bones.Flow
 
     public interface IPipelineFactory<TRequest, TResult> where TRequest: IRequest<TResult>
     {
-        IBuildablePipelineFactory<TRequest, TResult> Add<TMiddleware>() 
+        IBuildablePipelineFactory<TRequest, TResult> Add<TMiddleware>()
+            where TMiddleware : IMiddleware<TRequest, TResult>;
+        IBuildablePipelineFactory<TRequest, TResult> Add<TMiddleware>(TMiddleware middleware)
             where TMiddleware : IMiddleware<TRequest, TResult>;
 
         IPipelineFactory<TRequest, TResult> With<TMiddleware>()
+            where TMiddleware : IMiddleware<TRequest>;
+        IPipelineFactory<TRequest, TResult> With<TMiddleware>(TMiddleware middleware)
             where TMiddleware : IMiddleware<TRequest>;
     }
 

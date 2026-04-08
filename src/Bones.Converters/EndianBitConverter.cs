@@ -165,21 +165,71 @@ namespace Bones.Converters
         }
 
 
+        public virtual long ToInt(byte[] value)
+        {
+            return ToInt(value, 0);
+        }
+
         public virtual long ToInt(byte[] value, int startIndex)
         {
-            switch (value.Length)
+            if (startIndex < 0 || startIndex > value.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+
+            var remaining = value.Length - startIndex;
+
+            switch (remaining)
             {
                 case 0:
                     return 0;
+                case 1:
+                    return (sbyte)value[startIndex];
                 case 2:
-                    return ToInt16(value, 0);
+                    return ToInt16(value, startIndex);
+                case 3:
+                    return ToInt32(PadBytes(value, startIndex, 3, 4, signExtend: true), 0);
                 case 4:
-                    return ToInt32(value, 0);
+                    return ToInt32(value, startIndex);
+                case 5:
+                    return ToInt64(PadBytes(value, startIndex, 5, 8, signExtend: true), 0);
+                case 6:
+                    return ToInt64(PadBytes(value, startIndex, 6, 8, signExtend: true), 0);
+                case 7:
+                    return ToInt64(PadBytes(value, startIndex, 7, 8, signExtend: true), 0);
                 case 8:
-                    return ToInt64(value, 0);
+                    return ToInt64(value, startIndex);
                 default:
                     throw new NotImplementedException($"Data can't be converted to int - b64: {Convert.ToBase64String(value)} \tLength: {value.Length}");
             }
+        }
+
+        private byte[] PadBytes(byte[] value, int startIndex, int count, int targetWidth, bool signExtend)
+        {
+            var padded = new byte[targetWidth];
+            var padding = targetWidth - count;
+
+            byte fill = 0x00;
+            if (signExtend)
+            {
+                var msb = Endianness == Endianness.BigEndian
+                    ? value[startIndex]
+                    : value[startIndex + count - 1];
+                fill = (byte)((msb & 0x80) != 0 ? 0xFF : 0x00);
+            }
+
+            if (Endianness == Endianness.BigEndian)
+            {
+                for (var i = 0; i < padding; i++)
+                    padded[i] = fill;
+                Array.Copy(value, startIndex, padded, padding, count);
+            }
+            else
+            {
+                Array.Copy(value, startIndex, padded, 0, count);
+                for (var i = count; i < targetWidth; i++)
+                    padded[i] = fill;
+            }
+
+            return padded;
         }
 
         /// <summary>
@@ -207,29 +257,92 @@ namespace Bones.Converters
         public abstract long ToInt64(byte[] value, int startIndex);
 
 
-        public virtual ulong ToUInt(byte[] value, int startIndex)
+        public virtual double ToFloatingPoint(byte[] value)
         {
             switch (value.Length)
             {
                 case 0:
                     return 0;
-                case 1:
-                    return (UInt16)(ToUInt16(value, 0) >> 8);
                 case 2:
-                    return ToUInt16(value, 0);
-                case 3:
-                    return ToUInt32(value, 0) >> 8;
+                    return ToHalf(value, 0);
                 case 4:
-                    return ToUInt32(value, 0);
-
-                case 5:
-                    return ToUInt64(value, 0) >> 24;
-                case 6:
-                    return ToUInt64(value, 0) >> 16;
-                case 7:
-                    return ToUInt64(value, 0) >> 8;
+                    return ToSingle(value, 0);
                 case 8:
-                    return ToUInt64(value, 0);
+                    return ToDouble(value, 0);
+                default:
+                    throw new NotImplementedException($"Data can't be converted to floating point - b64: {Convert.ToBase64String(value)} \tLength: {value.Length}");
+            }
+        }
+
+        [Obsolete("Use ToFloatingPoint instead.")]
+        public virtual double ToFloat(byte[] value) => ToFloatingPoint(value);
+
+        public float ToHalf(byte[] value, int startIndex)
+        {
+            var intVal = ToUInt16(value, startIndex);
+            int sign = (intVal >> 15) & 0x0001;
+            int exponent = (intVal >> 10) & 0x001F;
+            int mantissa = intVal & 0x03FF;
+
+            if (exponent == 0)
+            {
+                if (mantissa == 0)
+                    return sign == 0 ? 0f : -0f;
+                // Subnormal
+                while ((mantissa & 0x0400) == 0)
+                {
+                    mantissa <<= 1;
+                    exponent--;
+                }
+                exponent++;
+                mantissa &= ~0x0400;
+            }
+            else if (exponent == 31)
+            {
+                return mantissa == 0
+                    ? (sign == 0 ? float.PositiveInfinity : float.NegativeInfinity)
+                    : float.NaN;
+            }
+
+            exponent = exponent + (127 - 15);
+            mantissa = mantissa << 13;
+
+            int floatBits = (sign << 31) | (exponent << 23) | mantissa;
+            return new Int32SingleUnion(floatBits).AsSingle;
+        }
+
+        public virtual ulong ToUInt(byte[] value)
+        {
+            return ToUInt(value, 0);
+        }
+
+        public virtual ulong ToUInt(byte[] value, int startIndex)
+        {
+            if (startIndex < 0 || startIndex > value.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+
+            var remaining = value.Length - startIndex;
+
+            switch (remaining)
+            {
+                case 0:
+                    return 0;
+                case 1:
+                    return value[startIndex];
+                case 2:
+                    return ToUInt16(value, startIndex);
+                case 3:
+                    return ToUInt32(PadBytes(value, startIndex, 3, 4, signExtend: false), 0);
+                case 4:
+                    return ToUInt32(value, startIndex);
+                case 5:
+                    return ToUInt64(PadBytes(value, startIndex, 5, 8, signExtend: false), 0);
+                case 6:
+                    return ToUInt64(PadBytes(value, startIndex, 6, 8, signExtend: false), 0);
+                case 7:
+                    return ToUInt64(PadBytes(value, startIndex, 7, 8, signExtend: false), 0);
+                case 8:
+                    return ToUInt64(value, startIndex);
                 default:
                     throw new NotImplementedException($"Data can't be convert to uint - b64: {Convert.ToBase64String(value)}");
             }

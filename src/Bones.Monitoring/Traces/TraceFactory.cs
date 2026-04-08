@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,10 +11,10 @@ namespace Bones.Monitoring.Core.Tracing
         private ILogger<TraceFactory> _logger;
         private IOptionsMonitor<BonesMonitoringOptions> _options;
 
-        public TraceFactory(ILogger<TraceFactory> logger, IOptionsMonitor<BonesMonitoringOptions> options)
+        public TraceFactory(ILogger<TraceFactory> logger, IServiceProvider provider)
         {
             _logger = logger;
-            _options = options;
+            _options = provider.GetService<IOptionsMonitor<BonesMonitoringOptions>>();
         }
 
         public ITrace Create(ActivitySource source, string name, ITrace parent = null)
@@ -53,6 +54,9 @@ namespace Bones.Monitoring.Core.Tracing
 
         public ITrace Enrich(ITrace trace, object param, string optionsName)
         {
+            if (_options == null)
+                return trace;
+
             var option = _options.Get(optionsName);
             if(option != null && option.SpanEnricher != null) option.SpanEnricher(trace, param);
             return trace;
